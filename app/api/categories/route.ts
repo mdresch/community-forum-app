@@ -1,22 +1,25 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { connectToDatabase } from '@/lib/db';
 import { Category } from '@/models/Category';
+import Thread from '@/models/Thread';
 
 export async function GET(request: NextRequest) {
   try {
     await connectToDatabase();
 
-    // Use populate to get the threadCount virtual
-    const categories = await Category.find({ isActive: true })
-      .sort({ order: 1 })
-      .populate('threadCount')
-      .exec();
+    // Get all active categories
+    const categories = await Category.find({ isActive: true }).sort({ order: 1 }).lean();
 
-    // Map to include threadCount (virtual) for each category
-    const categoriesWithThreadCount = categories.map(category => ({
-      ...category.toObject(),
-      threadCount: category.threadCount || 0
-    }));
+    // For each category, count threads
+    const categoriesWithThreadCount = await Promise.all(
+      categories.map(async (category) => {
+        const threadCount = await Thread.countDocuments({ category: category._id });
+        return {
+          ...category,
+          threadCount,
+        };
+      })
+    );
 
     return NextResponse.json(categoriesWithThreadCount);
   } catch (error) {
