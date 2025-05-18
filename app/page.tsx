@@ -1,7 +1,7 @@
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { ForumCategories } from "@/components/forum-categories"
+import ForumCategories from "@/components/forum-categories"
 import { TrendingThreads } from "@/components/trending-threads"
 import { RecentActivity } from "@/components/recent-activity"
 

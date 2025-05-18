@@ -4,6 +4,8 @@ import { Inter } from "next/font/google"
 import "./globals.css"
 import { ThemeProvider } from "@/components/theme-provider"
 import { SiteHeader } from "@/components/site-header"
+import { AuthProvider } from "@/hooks/useAuth"
+import { Toaster } from "@/components/ui/toaster"
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -17,6 +19,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={inter.className}>
+        <AuthProvider>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           <div className="relative flex min-h-screen flex-col">
             <SiteHeader />
@@ -40,7 +43,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               </div>
             </footer>
           </div>
+          <Toaster /> {/* Toast notifications */}
         </ThemeProvider>
+          </AuthProvider>
       </body>
     </html>
   )

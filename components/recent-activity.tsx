@@ -1,87 +1,54 @@
-import Link from "next/link"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { formatDistanceToNow } from "date-fns"
+"use client";
 
-const recentActivity = [
-  {
-    id: 1,
-    type: "post",
-    content: "Just shared my experience with the new framework...",
-    author: {
-      name: "Taylor Swift",
-      avatar: "/placeholder.svg?height=40&width=40",
-      username: "tswift",
-    },
-    thread: {
-      title: "New Framework Discussion",
-      slug: "new-framework-discussion",
-    },
-    category: "development",
-    timestamp: new Date(Date.now() - 1000 * 60 * 30), // 30 minutes ago
-  },
-  {
-    id: 2,
-    type: "reply",
-    content: "I completely agree with your assessment of...",
-    author: {
-      name: "John Doe",
-      avatar: "/placeholder.svg?height=40&width=40",
-      username: "johnd",
-    },
-    thread: {
-      title: "Community Guidelines Feedback",
-      slug: "community-guidelines-feedback",
-    },
-    category: "ideas-feedback",
-    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 2), // 2 hours ago
-  },
-  {
-    id: 3,
-    type: "thread",
-    content: "Started a new discussion about job opportunities...",
-    author: {
-      name: "Emma Wilson",
-      avatar: "/placeholder.svg?height=40&width=40",
-      username: "emmaw",
-    },
-    thread: {
-      title: "Remote Job Opportunities 2025",
-      slug: "remote-job-opportunities-2025",
-    },
-    category: "jobs-opportunities",
-    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 5), // 5 hours ago
-  },
-]
+import React from "react";
+import Link from "next/link";
+import { formatDistanceToNow } from "date-fns";
+import { useRecentActivity } from "@/hooks/useRecentActivity";
 
 export function RecentActivity() {
+  const { activities, loading, error } = useRecentActivity();
+
+  // Loading state with skeleton UI
+  if (loading) {
+    return (
+      <div className="space-y-4 animate-pulse">
+        <div className="text-sm">
+          <div className="h-4 w-32 bg-muted rounded" />
+          <div className="mt-1 h-4 w-24 bg-muted rounded" />
+        </div>
+        <div className="text-sm">
+          <div className="h-4 w-32 bg-muted rounded" />
+          <div className="mt-1 h-4 w-24 bg-muted rounded" />
+        </div>
+      </div>
+    );
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <div className="text-sm text-destructive">
+        <div className="font-medium">Error loading activities</div>
+        <div className="text-sm">{error}</div>
+      </div>
+    );
+  }
+
+  // Success state with actual data
   return (
     <div className="space-y-4">
-      {recentActivity.map((activity) => (
-        <div key={activity.id} className="rounded-lg border p-3">
-          <div className="flex items-center gap-2">
-            <Avatar className="h-6 w-6">
-              <AvatarImage src={activity.author.avatar || "/placeholder.svg"} alt={activity.author.name} />
-              <AvatarFallback>{activity.author.name.charAt(0)}</AvatarFallback>
-            </Avatar>
-            <span className="text-sm font-medium">{activity.author.name}</span>
-            <span className="text-xs text-muted-foreground">
-              {activity.type === "post" && "posted in"}
-              {activity.type === "reply" && "replied to"}
-              {activity.type === "thread" && "created"}
-            </span>
-          </div>
-          <Link
-            href={`/forums/${activity.category}/${activity.thread.slug}`}
-            className="mt-1 block text-sm font-medium hover:underline"
-          >
-            {activity.thread.title}
+      {activities.map((activity) => (
+        <div key={activity.id} className="text-sm">
+          <span className="font-medium">{activity.user}</span>{" "}
+          <span className="text-muted-foreground">{activity.action}</span>{" "}
+          <Link href={`/forums/thread/${activity.threadSlug}`} className="font-medium hover:underline">
+            {activity.thread}
           </Link>
-          <p className="mt-1 text-xs text-muted-foreground line-clamp-1">{activity.content}</p>
-          <div className="mt-2 text-xs text-muted-foreground">
-            {formatDistanceToNow(activity.timestamp, { addSuffix: true })}
+          <div className="mt-1 text-xs text-muted-foreground">
+            {formatDistanceToNow(new Date(activity.time), { addSuffix: true })}
           </div>
         </div>
       ))}
     </div>
-  )
+  );
 }

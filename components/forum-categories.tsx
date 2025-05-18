@@ -1,74 +1,52 @@
+// forum-categories.tsx
+"use client";
+
+import React from "react";
 import Link from "next/link"
 import { MessageSquare, Users, Code, Lightbulb, HelpCircle, Briefcase } from "lucide-react"
+import { useCategories } from "@/hooks/useForumData"
 
-const categories = [
-  {
-    id: 1,
-    name: "General Discussion",
-    description: "Chat about anything and everything",
-    icon: <MessageSquare className="h-5 w-5" />,
-    threadCount: 324,
-    slug: "general-discussion",
-  },
-  {
-    id: 2,
-    name: "Introductions",
-    description: "Introduce yourself to the community",
-    icon: <Users className="h-5 w-5" />,
-    threadCount: 156,
-    slug: "introductions",
-  },
-  {
-    id: 3,
-    name: "Development",
-    description: "Discuss programming and development",
-    icon: <Code className="h-5 w-5" />,
-    threadCount: 487,
-    slug: "development",
-  },
-  {
-    id: 4,
-    name: "Ideas & Feedback",
-    description: "Share your ideas and give feedback",
-    icon: <Lightbulb className="h-5 w-5" />,
-    threadCount: 213,
-    slug: "ideas-feedback",
-  },
-  {
-    id: 5,
-    name: "Help & Support",
-    description: "Get help from the community",
-    icon: <HelpCircle className="h-5 w-5" />,
-    threadCount: 398,
-    slug: "help-support",
-  },
-  {
-    id: 6,
-    name: "Jobs & Opportunities",
-    description: "Find or post job opportunities",
-    icon: <Briefcase className="h-5 w-5" />,
-    threadCount: 92,
-    slug: "jobs-opportunities",
-  },
-]
+// Map category names to icons
+const categoryIcons: Record<string, React.ReactNode> = {
+  "General Discussion": <MessageSquare className="h-5 w-5" />,
+  "Introductions": <Users className="h-5 w-5" />,
+  "Development": <Code className="h-5 w-5" />,
+  "Ideas & Feedback": <Lightbulb className="h-5 w-5" />,
+  "Help & Support": <HelpCircle className="h-5 w-5" />,
+  "Jobs & Opportunities": <Briefcase className="h-5 w-5" />,
+};
 
-export function ForumCategories() {
+export default function ForumCategories() {
+  const { categories, isLoading } = useCategories();
+
+  if (isLoading) {
+    return (
+      <div className="space-y-4">
+        {/* Your existing skeleton loader */}
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-4">
       {categories.map((category) => (
-        <Link
-          key={category.id}
+        <Link 
+          key={category._id} 
           href={`/forums/${category.slug}`}
-          className="flex items-start gap-4 rounded-lg border p-4 transition-colors hover:bg-muted"
+          className="flex items-start gap-4 rounded-lg border p-4 hover:border-primary transition-colors"
         >
-          <div className="mt-1 rounded-md bg-primary/10 p-2 text-primary">{category.icon}</div>
-          <div className="flex-1">
-            <h3 className="font-semibold">{category.name}</h3>
+          <div className="mt-1">{categoryIcons[category.name] || <MessageSquare className="h-5 w-5" />}</div>
+          <div className="flex-1 space-y-2">
+            <div className="flex justify-between items-start">
+              <h3 className="font-medium">{category.name}</h3>
+              <div className="text-sm text-muted-foreground">
+                {category.threadCount} threads
+              </div>
+            </div>
             <p className="text-sm text-muted-foreground">{category.description}</p>
           </div>
-          <div className="text-sm text-muted-foreground">{category.threadCount} threads</div>
         </Link>
       ))}
     </div>
-  )
+  );
 }

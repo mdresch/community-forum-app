@@ -115,9 +115,10 @@ const getThreads = (category: string) => {
   ]
 }
 
-export default function CategoryPage({ params }: { params: { category: string } }) {
-  const categoryData = getCategoryData(params.category)
-  const threads = getThreads(params.category)
+export default async function CategoryPage({ params }: { params: { category: string } }) {
+  const { category } = await params;
+  const categoryData = await getCategoryData(category);
+  const threads = await getThreads(category);
 
   return (
     <div className="container mx-auto px-4 py-6">
@@ -127,7 +128,7 @@ export default function CategoryPage({ params }: { params: { category: string } 
           <p className="text-muted-foreground">{categoryData.description}</p>
         </div>
         <Button asChild>
-          <Link href={`/forums/${params.category}/new-thread`}>Create Thread</Link>
+          <Link href={`/forums/${category}/new-thread`}>Create Thread</Link>
         </Button>
       </div>
 
@@ -165,7 +166,7 @@ export default function CategoryPage({ params }: { params: { category: string } 
                       ))}
                     </div>
                     <Link
-                      href={`/forums/${params.category}/${thread.slug}`}
+                      href={`/forums/${category}/${thread.slug}`}
                       className="block font-medium hover:underline"
                     >
                       {thread.title}

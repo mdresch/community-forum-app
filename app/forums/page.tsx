@@ -2,7 +2,7 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { ForumCategories } from "@/components/forum-categories"
+import ForumCategories from "@/components/forum-categories"
 import { TrendingThreads } from "@/components/trending-threads"
 
 export default function ForumsPage() {
