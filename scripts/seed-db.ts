@@ -13,7 +13,7 @@ if (fs.existsSync(envPath)) {
   console.warn('.env.local file not found');
 }
 
-import connectToDatabase from '../lib/db';
+import { connectToDatabase } from '../lib/db';
 import { Category, User, Thread, Post } from '../models';
 import bcrypt from 'bcrypt';
 

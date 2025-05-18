@@ -1,5 +1,5 @@
 import User from './User';
-import Category from './Category';
+import { Category } from './Category';
 import Thread from './Thread';
 import Post from './Post';
 

@@ -15,14 +15,10 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Bell } from "lucide-react"
 
-export function UserNav() {
-  // In a real app, this would come from your authentication system
-  const user = {
-    name: "Jane Smith",
-    email: "jane.smith@example.com",
-    image: "/placeholder.svg?height=32&width=32",
-  }
-
+export function UserNav({ user }: { user: { name?: string; username?: string; email: string; image?: string; avatar?: string } }) {
+  // Prefer name, then username, then email for display
+  const displayName = user.name || user.username || user.email || "User";
+  const avatarUrl = user.avatar || user.image || "/placeholder.svg";
   return (
     <div className="flex items-center gap-4">
       <Button variant="ghost" size="icon" asChild>
@@ -37,15 +33,15 @@ export function UserNav() {
         <DropdownMenuTrigger asChild>
           <Button variant="ghost" className="relative h-8 w-8 rounded-full">
             <Avatar className="h-8 w-8">
-              <AvatarImage src={user.image || "/placeholder.svg"} alt={user.name} />
-              <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
+              <AvatarImage src={avatarUrl} alt={displayName} />
+              <AvatarFallback>{displayName.charAt(0).toUpperCase()}</AvatarFallback>
             </Avatar>
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent className="w-56" align="end" forceMount>
           <DropdownMenuLabel className="font-normal">
             <div className="flex flex-col space-y-1">
-              <p className="text-sm font-medium leading-none">{user.name}</p>
+              <p className="text-sm font-medium leading-none">{displayName}</p>
               <p className="text-xs leading-none text-muted-foreground">{user.email}</p>
             </div>
           </DropdownMenuLabel>
@@ -108,5 +104,5 @@ export function UserNav() {
         </DropdownMenuContent>
       </DropdownMenu>
     </div>
-  )
+  );
 }

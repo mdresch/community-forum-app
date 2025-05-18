@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import connectToDatabase from '@/lib/db';
+import { connectToDatabase } from '@/lib/db';
 import Thread from '@/models/Thread';
 import User from '@/models/User';
 import { Category } from '@/models/Category'

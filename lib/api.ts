@@ -211,3 +211,12 @@ export const posts = {
     });
   },
 };
+
+/**
+ * User-related API functions
+ */
+export const users = {
+  getProfile: async (id: string) => {
+    return apiRequest(`users/${id}`);
+  },
+};

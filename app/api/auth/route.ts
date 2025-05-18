@@ -1,6 +1,6 @@
 // app/api/auth/route.ts
 import { NextRequest, NextResponse } from 'next/server';
-import connectToDatabase from '@/lib/db';
+import { connectToDatabase } from '@/lib/db';
 import User from '@/models/User';
 import { generateToken } from '@/lib/auth';
 

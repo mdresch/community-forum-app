@@ -11,6 +11,13 @@ export interface IUser extends Document {
   role: 'user' | 'moderator' | 'admin';
   isActive: boolean;
   comparePassword(candidatePassword: string): Promise<boolean>;
+  name?: string;
+  location?: string;
+  website?: string;
+  postCount?: number;
+  threadCount?: number;
+  reputation?: number;
+  badges?: { id: number; name: string; count: number; variant: string }[];
 }
 
 const UserSchema: Schema = new Schema(
@@ -58,6 +65,41 @@ const UserSchema: Schema = new Schema(
       type: Boolean,
       default: true,
     },
+    name: {
+      type: String,
+      maxlength: [100, 'Name cannot exceed 100 characters'],
+      default: '',
+    },
+    location: {
+      type: String,
+      maxlength: [100, 'Location cannot exceed 100 characters'],
+      default: '',
+    },
+    website: {
+      type: String,
+      maxlength: [200, 'Website cannot exceed 200 characters'],
+      default: '',
+    },
+    postCount: {
+      type: Number,
+      default: 0,
+    },
+    threadCount: {
+      type: Number,
+      default: 0,
+    },
+    reputation: {
+      type: Number,
+      default: 0,
+    },
+    badges: [
+      {
+        id: Number,
+        name: String,
+        count: Number,
+        variant: String,
+      },
+    ],
   },
   {
     timestamps: true,

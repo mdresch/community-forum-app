@@ -31,8 +31,9 @@ const ThreadSkeleton = () => (
   </div>
 )
 
-export default function ThreadPage({ params }: { params: { category: string; thread: string } }) {
-  const { thread: threadData, posts, isLoading, error } = useThreadDetails(params.thread)
+export default function ThreadPage({ params }: { params: Promise<{ category: string; thread: string }> }) {
+  const { category, thread: threadSlug } = React.use(params);
+  const { thread: threadData, posts, isLoading, error } = useThreadDetails(threadSlug)
   const { user } = useAuth()
   const [newComment, setNewComment] = useState("")
   
@@ -53,7 +54,7 @@ export default function ThreadPage({ params }: { params: { category: string; thr
     <div className="container mx-auto px-4 py-6">
       <div className="mb-4">
         <Link
-          href={`/forums/${params.category}`}
+          href={`/forums/${category}`}
           className="mb-2 inline-flex items-center text-sm text-muted-foreground hover:text-foreground"
         >
           <svg
@@ -70,7 +71,7 @@ export default function ThreadPage({ params }: { params: { category: string; thr
           >
             <polyline points="15 18 9 12 15 6" />
           </svg>
-          Back to {params.category.replace(/-/g, " ")}
+          Back to {category.replace(/-/g, " ")}
         </Link>
         {isLoading ? (
           <Skeleton className="h-10 w-3/4" />

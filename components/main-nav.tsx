@@ -27,9 +27,11 @@ import {
   PieChart,
   Bookmark,
 } from "lucide-react"
+import { useAuth } from "@/hooks/useAuth"
 
 export function MainNav() {
   const pathname = usePathname()
+  const { user } = useAuth();
 
   return (
     <div className="mr-4 hidden md:flex">
@@ -156,15 +158,6 @@ export function MainNav() {
           </NavigationMenuItem>
 
           <NavigationMenuItem>
-            <Link href="/notifications" legacyBehavior passHref>
-              <NavigationMenuLink className={navigationMenuTriggerStyle()}>
-                <Bell className="mr-2 h-4 w-4" />
-                Notifications
-              </NavigationMenuLink>
-            </Link>
-          </NavigationMenuItem>
-
-          <NavigationMenuItem>
             <Link href="/bookmarks" legacyBehavior passHref>
               <NavigationMenuLink className={navigationMenuTriggerStyle()}>
                 <Bookmark className="mr-2 h-4 w-4" />
@@ -172,6 +165,18 @@ export function MainNav() {
               </NavigationMenuLink>
             </Link>
           </NavigationMenuItem>
+
+          {/* Admin menu item, only for admins */}
+          {user?.role === "admin" && (
+            <NavigationMenuItem>
+              <Link href="/admin" legacyBehavior passHref>
+                <NavigationMenuLink className={navigationMenuTriggerStyle()}>
+                  <Shield className="mr-2 h-4 w-4" />
+                  Admin
+                </NavigationMenuLink>
+              </Link>
+            </NavigationMenuItem>
+          )}
         </NavigationMenuList>
       </NavigationMenu>
     </div>

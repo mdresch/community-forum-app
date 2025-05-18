@@ -36,7 +36,7 @@ const categorySchema = new Schema<ICategory>({
   icon: {
     type: String,
     required: true,
-    enum: ['MessageSquare', 'Users', 'Code', 'Book', 'Globe', 'Settings']
+    enum: ['MessageSquare', 'Users', 'Code', 'Book', 'Globe', 'Settings', 'Lightbulb', 'HelpCircle', 'Briefcase']
   },
   order: {
     type: Number,

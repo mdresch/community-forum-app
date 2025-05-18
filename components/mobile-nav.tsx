@@ -13,9 +13,11 @@ import {
   SheetClose,
 } from "@/components/ui/sheet"
 import { Menu } from "lucide-react"
+import { useAuth } from "@/hooks/useAuth"
 
 export function MobileNav() {
   const [open, setOpen] = useState(false)
+  const { user } = useAuth();
 
   return (
     <div className="md:hidden">
@@ -207,6 +209,18 @@ export function MobileNav() {
                 Settings
               </Link>
             </SheetClose>
+
+            {/* Admin menu item, only for admins */}
+            {user?.role === "admin" && (
+              <SheetClose asChild>
+                <Link
+                  href="/admin"
+                  className="flex items-center rounded-md px-2 py-1 text-sm hover:bg-accent hover:text-accent-foreground font-semibold text-red-600"
+                >
+                  Admin
+                </Link>
+              </SheetClose>
+            )}
           </div>
         </SheetContent>
       </Sheet>

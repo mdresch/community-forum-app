@@ -1,24 +1,23 @@
 import { NextRequest, NextResponse } from 'next/server';
-import connectToDatabase from '@/lib/db';
+import { connectToDatabase } from '@/lib/db';
 import { Category } from '@/models/Category';
 
 export async function GET(request: NextRequest) {
   try {
-    //connect to database
-    const db = await connectToDatabase();
+    await connectToDatabase();
 
-    // Now that we have a connection we can safely use the model
-    
+    // Use populate to get the threadCount virtual
     const categories = await Category.find({ isActive: true })
       .sort({ order: 1 })
+      .populate('threadCount')
       .exec();
-    
-    // Add thread count to each category
+
+    // Map to include threadCount (virtual) for each category
     const categoriesWithThreadCount = categories.map(category => ({
       ...category.toObject(),
-      threadCount: category.threads?.length || 0
+      threadCount: category.threadCount || 0
     }));
-    
+
     return NextResponse.json(categoriesWithThreadCount);
   } catch (error) {
     console.error('Error fetching categories:', error);

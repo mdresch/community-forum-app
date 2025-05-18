@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import connectToDatabase from '@/lib/db';
+import { connectToDatabase } from '@/lib/db';
 import Post from '@/models/Post';
 import { getUserFromRequest } from '@/lib/auth';
 
@@ -48,9 +48,12 @@ export async function POST(request: NextRequest) {
     
     const { content, thread, parentPost } = await request.json();
     
+    // Use user._id if available, otherwise fallback to user.id or user.sub
+    const authorId = (user && (user._id || user.id || user.sub)) ? (user._id || user.id || user.sub) : user;
+
     const newPost = new Post({
       content,
-      author: user.id,
+      author: authorId,
       thread,
       parentPost: parentPost || null,
     });
