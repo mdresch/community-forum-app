@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { connectToDatabase } from '@/lib/db';
 import Thread from '@/models/Thread';
+import Category from '@/models/Category'; // Directly import the Category model
 import { getUserFromRequest } from '@/lib/auth';
 
 export async function GET(request: NextRequest) {
@@ -84,15 +85,13 @@ export async function POST(request: NextRequest) {
     const slug = title
       .toLowerCase()
       .replace(/[^\w\s]/gi, '')
-      .replace(/\s+/g, '-');
-    
-    // Find the category by slug before creating the thread
-    const Category = await import('@/models/Category').then(m => m.default);
+      .replace(/\s+/g, '-');    // Find the category by slug before creating the thread
     let categoryObj = null;
+    
+    console.log('Looking for category with slug:', categorySlug);
     
     try {
       categoryObj = await Category.findOne({ slug: categorySlug });
-      
       if (!categoryObj) {
         console.error(`Category with slug "${categorySlug}" not found`);
         return NextResponse.json(
