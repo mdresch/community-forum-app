@@ -3,9 +3,10 @@ import { connectToDatabase } from '@/lib/db';
 import { Category } from '@/models/Category';
 import Thread from '@/models/Thread';
 import User from '@/models/User';
+import Post from '@/models/Post';
 
 // GET /api/categories/[slug]
-export async function GET(request, context) {
+export async function GET(request: Request, context: { params: { slug: string } }) {
   const { params } = context;
   const { slug } = await params;
   try {
@@ -23,19 +24,23 @@ export async function GET(request, context) {
       .sort({ isPinned: -1, createdAt: -1 });
 
     // Format threads for the frontend
-    const formattedThreads = threads.map(thread => ({
-      id: thread._id,
-      title: thread.title,
-      content: thread.content,
-      author: thread.author,
-      isPinned: thread.isPinned,
-      isLocked: thread.isLocked,
-      replies: thread.repliesCount || 0, // You may need to calculate this
-      views: thread.views || 0,
-      likes: thread.likes || 0,
-      lastActivity: thread.updatedAt || thread.createdAt,
-      tags: thread.tags || [],
-      slug: thread.slug,
+    const formattedThreads = await Promise.all(threads.map(async thread => {
+      // Count replies (posts) for this thread
+      const replies = await Post.countDocuments({ thread: thread._id });
+      return {
+        id: thread._id,
+        title: thread.title,
+        content: thread.content,
+        author: thread.author,
+        isPinned: thread.isPinned,
+        isLocked: thread.isLocked,
+        replies,
+        views: thread.viewCount || 0,
+        likes: thread.likes ? thread.likes.length : 0,
+        lastActivity: thread.updatedAt || thread.createdAt,
+        tags: thread.tags || [],
+        slug: thread.slug,
+      };
     }));
 
     return NextResponse.json({
@@ -48,6 +53,6 @@ export async function GET(request, context) {
       threads: formattedThreads,
     });
   } catch (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ error: (error as Error).message }, { status: 500 });
   }
 }

@@ -2,7 +2,7 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,9 +11,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/hooks/useAuth";
 
-export default function NewThreadPage({ params }: { params: { category: string } }) {
+export default function NewThreadPage() {
   const router = useRouter();
   const { user } = useAuth();
+  const params = useParams();
+  const category = params.category as string;
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [tags, setTags] = useState<string[]>([]);
@@ -37,14 +39,19 @@ export default function NewThreadPage({ params }: { params: { category: string }
     setError(null);
     setLoading(true);
     try {
+      // Get JWT token from localStorage
+      const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
       const res = await fetch(`/api/threads`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
         body: JSON.stringify({
           title,
           content,
           tags,
-          category: params.category,
+          category,
         }),
       });
       if (!res.ok) {
@@ -54,7 +61,7 @@ export default function NewThreadPage({ params }: { params: { category: string }
         return;
       }
       const data = await res.json();
-      router.push(`/forums/${params.category}/${data.slug}`);
+      router.push(`/forums/${category}/${data.slug}`);
     } catch (err) {
       setError("An error occurred. Please try again.");
       setLoading(false);
@@ -114,7 +121,7 @@ export default function NewThreadPage({ params }: { params: { category: string }
             {error && <div className="text-red-500 text-sm">{error}</div>}
             <div className="flex gap-2 justify-end">
               <Button asChild variant="ghost" type="button">
-                <Link href={`/forums/${params.category}`}>Cancel</Link>
+                <Link href={`/forums/${category}`}>Cancel</Link>
               </Button>
               <Button type="submit" disabled={loading}>
                 {loading ? "Posting..." : "Post Thread"}

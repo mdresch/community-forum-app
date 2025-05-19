@@ -1,3 +1,4 @@
+"use client"
 import Link from "next/link"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -7,8 +8,40 @@ import { AdminUsersList } from "@/components/admin/users-list"
 import { AdminReportsList } from "@/components/admin/reports-list"
 import { AdminContentList } from "@/components/admin/content-list"
 import { AdminAnalytics } from "@/components/admin/analytics"
+import { useEffect, useState } from "react"
 
 export default function AdminDashboard() {
+  const [stats, setStats] = useState({
+    users: 0,
+    threads: 0,
+    postsToday: 0,
+    pendingReports: 0,
+    urgentReports: 0,
+  })
+
+  useEffect(() => {
+    async function fetchStats() {
+      const [usersRes, threadsRes, postsRes, reportsRes] = await Promise.all([
+        fetch("/api/users/admin-list"),
+        fetch("/api/threads"),
+        fetch("/api/posts?today=1"),
+        fetch("/api/reports?status=Pending"),
+      ])
+      const users = await usersRes.json()
+      const threads = await threadsRes.json()
+      const posts = await postsRes.json()
+      const reports = await reportsRes.json()
+      setStats({
+        users: users.length,
+        threads: threads.length,
+        postsToday: posts.length,
+        pendingReports: reports.length,
+        urgentReports: reports.filter((r: any) => r.priority === "High").length,
+      })
+    }
+    fetchStats()
+  }, [])
+
   return (
     <div className="container mx-auto px-4 py-6">
       <div className="mb-6 flex items-center justify-between">
@@ -32,9 +65,9 @@ export default function AdminDashboard() {
             <CardTitle className="text-sm font-medium">Total Users</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">2,853</div>
+            <div className="text-2xl font-bold">{stats.users}</div>
             <p className="text-xs text-muted-foreground">
-              <span className="text-green-500">+12%</span> from last month
+              {/* You can add growth % here if you have the data */}
             </p>
           </CardContent>
         </Card>
@@ -43,10 +76,8 @@ export default function AdminDashboard() {
             <CardTitle className="text-sm font-medium">Active Threads</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">1,247</div>
-            <p className="text-xs text-muted-foreground">
-              <span className="text-green-500">+8%</span> from last month
-            </p>
+            <div className="text-2xl font-bold">{stats.threads}</div>
+            <p className="text-xs text-muted-foreground"></p>
           </CardContent>
         </Card>
         <Card>
@@ -54,10 +85,8 @@ export default function AdminDashboard() {
             <CardTitle className="text-sm font-medium">New Posts Today</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">342</div>
-            <p className="text-xs text-muted-foreground">
-              <span className="text-green-500">+23%</span> from yesterday
-            </p>
+            <div className="text-2xl font-bold">{stats.postsToday}</div>
+            <p className="text-xs text-muted-foreground"></p>
           </CardContent>
         </Card>
         <Card>
@@ -66,9 +95,9 @@ export default function AdminDashboard() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              18 <Badge className="ml-2">5 urgent</Badge>
+              {stats.pendingReports} <Badge className="ml-2">{stats.urgentReports} urgent</Badge>
             </div>
-            <p className="text-xs text-muted-foreground">12 new since last login</p>
+            <p className="text-xs text-muted-foreground"></p>
           </CardContent>
         </Card>
       </div>

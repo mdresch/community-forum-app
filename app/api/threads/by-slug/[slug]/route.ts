@@ -3,6 +3,7 @@ import { connectToDatabase } from '@/lib/db';
 import Thread from '@/models/Thread';
 import User from '@/models/User';
 import { Category } from '@/models/Category'
+import Post from '@/models/Post';
 
 export async function GET(
   request: NextRequest,
@@ -32,8 +33,22 @@ export async function GET(
       );
     }
 
-    // Convert to plain object to add category name
-    const threadData = thread.toObject();
+    // Count replies (posts) for this thread
+    const replies = await Post.countDocuments({ thread: thread._id });
+    // Add likes count
+    const likes = thread.likes ? thread.likes.length : 0;
+    // Add view count
+    const views = thread.viewCount || 0;
+    // Add replyCount (for compatibility)
+    const replyCount = replies;
+    // Add to threadData
+    const threadData = {
+      ...thread.toObject(),
+      replies,
+      replyCount,
+      likes,
+      views,
+    };
     
     // Increment view count
     await Thread.findByIdAndUpdate(thread._id, { $inc: { viewCount: 1 } });

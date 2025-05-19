@@ -5,11 +5,12 @@ import User from '@/models/User';
 import Thread from '@/models/Thread';
 import Post from '@/models/Post';
 
-export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(request: NextRequest, context: { params: { id: string } }) {
   try {
     await connectToDatabase();
-    const user = await User.findById(params.id).lean();
-    if (!user) {
+    const { id } = context.params;
+    const user = await User.findById(id).lean();
+    if (!user || Array.isArray(user)) {
       return NextResponse.json({ message: 'User not found' }, { status: 404 });
     }
 

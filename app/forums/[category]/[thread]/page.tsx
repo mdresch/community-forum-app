@@ -12,6 +12,7 @@ import { ThumbsUp, MessageSquare, Flag, Share2, Bookmark, MoreHorizontal } from 
 import { formatDistanceToNow } from "date-fns"
 import { useThreadDetails, getFallbackThreadData, getFallbackPosts } from "@/hooks/useThreadDetails"
 import { useAuth } from "@/hooks/useAuth"
+import { ThreadVoting } from "@/components/voting/thread-voting"
 
 // Loading skeleton component for thread content
 const ThreadSkeleton = () => (
@@ -123,14 +124,20 @@ export default function ThreadPage({ params }: { params: Promise<{ category: str
               </CardContent>
               <CardFooter className="flex items-center justify-between border-t px-6 py-3">
                 <div className="flex items-center gap-4">
-                  <Button variant="ghost" size="sm" className="flex items-center gap-1">
-                    <ThumbsUp className="h-4 w-4" />
-                    <span>0</span>
-                  </Button>
-                  <Button variant="ghost" size="sm" className="flex items-center gap-1">
+                  <ThreadVoting
+                    threadId={thread._id}
+                    initialVotes={{ upvotes: typeof thread.replyCount === 'number' ? thread.replyCount : 0, downvotes: 0 }}
+                    showDownvote={false}
+                    size="sm"
+                  />
+                  <div className="flex items-center gap-1">
                     <MessageSquare className="h-4 w-4" />
                     <span>{comments.length}</span>
-                  </Button>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A2 2 0 0020 6.382V5a2 2 0 00-2-2H6a2 2 0 00-2 2v1.382a2 2 0 00.447 1.342L9 10m6 0v10m0 0H9m6 0a2 2 0 002-2v-8a2 2 0 00-2-2H9a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
+                    <span>{thread.viewCount ?? 0}</span>
+                  </div>
                 </div>
                 <div className="flex items-center gap-2">
                   <Button variant="ghost" size="icon">

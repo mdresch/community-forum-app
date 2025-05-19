@@ -12,7 +12,7 @@ export async function GET(request: NextRequest) {
 
     // For each category, count threads
     const categoriesWithThreadCount = await Promise.all(
-      categories.map(async (category) => {
+      categories.map(async (category: any) => {
         const threadCount = await Thread.countDocuments({ category: category._id });
         return {
           ...category,

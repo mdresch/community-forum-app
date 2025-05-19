@@ -11,6 +11,7 @@ export interface IThread extends Document {
   isSticky: boolean;
   isLocked: boolean;
   viewCount: number;
+  likes: mongoose.Types.ObjectId[]; // Array of user IDs who liked/upvoted
   lastActivity: Date;
   tags: string[];
 }
@@ -58,6 +59,11 @@ const ThreadSchema: Schema = new Schema(
       type: Number,
       default: 0,
     },
+    likes: [{
+      type: Schema.Types.ObjectId,
+      ref: 'User',
+      default: [],
+    }],
     lastActivity: {
       type: Date,
       default: Date.now,
