@@ -30,16 +30,55 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     await connectToDatabase();
+      // First try Clerk authentication
+    const { getAuth } = await import('@clerk/nextjs/server');
     
-    const user = await getUserFromRequest(request);
+    // Log the request headers to debug authentication issues
+    console.log('[API] POST /api/threads - Request headers:', {
+      authorization: request.headers.get('authorization'),
+      'clerk-auth-token': request.headers.has('clerk-auth-token'),
+    });
+    
+    const auth = getAuth(request);
+    const userId = auth.userId;
+    
+    console.log('[API] POST /api/threads - Clerk auth:', { 
+      userId, 
+      sessionId: auth.sessionId,
+      isAuthorized: !!userId
+    });
+    
+    let user = null;
+    
+    if (userId) {
+      // Find the user in MongoDB by clerkId
+      const User = await import('@/models/User').then(m => m.default);
+      const mongoUser = await User.findOne({ clerkId: userId });
+      
+      if (mongoUser) {
+        user = {
+          id: mongoUser._id,
+          username: mongoUser.username,
+          email: mongoUser.email,
+          role: mongoUser.role,
+        };
+        console.log('[API] Found MongoDB user:', { id: mongoUser._id, username: mongoUser.username });
+      } else {
+        console.warn(`User with Clerk ID ${userId} not found in MongoDB`);
+      }
+    } else {
+      // Fall back to legacy token auth if Clerk auth fails
+      user = await getUserFromRequest(request);
+      console.log('[API] Using legacy auth, result:', !!user);
+    }
+    
     if (!user) {
       return NextResponse.json(
         { message: 'Unauthorized' },
         { status: 401 }
       );
     }
-    
-    const { title, content, category, tags } = await request.json();
+      const { title, content, category: categorySlug, tags } = await request.json();
     
     // Generate a slug from the title
     const slug = title
@@ -47,22 +86,73 @@ export async function POST(request: NextRequest) {
       .replace(/[^\w\s]/gi, '')
       .replace(/\s+/g, '-');
     
+    // Find the category by slug before creating the thread
+    const Category = await import('@/models/Category').then(m => m.default);
+    let categoryObj = null;
+    
+    try {
+      categoryObj = await Category.findOne({ slug: categorySlug });
+      
+      if (!categoryObj) {
+        console.error(`Category with slug "${categorySlug}" not found`);
+        return NextResponse.json(
+          { message: `Category "${categorySlug}" not found` },
+          { status: 400 }
+        );
+      }
+    } catch (err) {
+      console.error('Error finding category:', err);
+      return NextResponse.json(
+        { message: 'Error finding category' },
+        { status: 500 }
+      );
+    }
+    
+    console.log('Found category:', { id: categoryObj._id, name: categoryObj.name, slug: categoryObj.slug });
+    
     const newThread = new Thread({
       title,
       slug,
       content,
       author: user.id,
-      category,
+      category: categoryObj._id, // Use the ObjectId from the found category
       tags: tags || [],
-    });
-    
-    await newThread.save();
-    
-    return NextResponse.json(newThread, { status: 201 });
+    });    try {
+      // Try to save the thread and handle potential validation errors
+      await newThread.save();
+      console.log('Thread created successfully:', { id: newThread._id, slug: newThread.slug });
+      
+      return NextResponse.json(newThread, { status: 201 });
+    } catch (saveError) {
+      console.error('Error saving thread:', saveError);
+      
+      // Handle specific MongoDB errors more gracefully
+      if (saveError.name === 'ValidationError') {
+        const validationErrors = Object.values(saveError.errors).map((err: any) => err.message);
+        return NextResponse.json(
+          { message: 'Validation error', errors: validationErrors },
+          { status: 400 }
+        );
+      }
+      
+      if (saveError.code === 11000) {
+        return NextResponse.json(
+          { message: 'A thread with this title already exists' },
+          { status: 409 }
+        );
+      }
+      
+      const errorMessage = saveError instanceof Error ? saveError.message : 'Unknown error';
+      return NextResponse.json(
+        { message: 'Failed to save thread', error: errorMessage },
+        { status: 500 }
+      );
+    }
   } catch (error) {
     console.error('Error creating thread:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     return NextResponse.json(
-      { message: 'Failed to create thread' },
+      { message: 'Failed to create thread', error: errorMessage },
       { status: 500 }
     );
   }

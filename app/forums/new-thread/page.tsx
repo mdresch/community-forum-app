@@ -11,7 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/hooks/useAuth";
 import { useCategories } from "@/hooks/useForumData";
-import { useRefreshToken } from "@/hooks/useRefreshToken";
+import { threads as threadsApi, ApiError } from "@/lib/api";
 
 export default function NewThreadPage() {
   const router = useRouter();
@@ -25,7 +25,7 @@ export default function NewThreadPage() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  const { refreshTokenLoading, refreshTokenError } = useRefreshToken();
+  // No longer needed with Clerk authentication
 
   const handleAddTag = () => {
     if (tagInput.trim() && !tags.includes(tagInput.trim())) {
@@ -33,64 +33,59 @@ export default function NewThreadPage() {
       setTagInput("");
     }
   };
-
   const handleRemoveTag = (tag: string) => {
     setTags(tags.filter((t) => t !== tag));
   };
-
+  
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
     setLoading(true);
     try {
-      // Pre-flight: check session validity
-      const token = localStorage.getItem('auth_token');
-      if (!token) {
-        setError('Authentication token not found. Please log in again.');
+      // Check for user authentication
+      if (!user) {
+        setError('You must be logged in to create a thread.');
         setLoading(false);
         router.push('/auth/login');
         return;
       }
-
-      // TODO: Implement proper session validation here. Replace the commented out code with the correct endpoint.
-      // If session is invalid, set error, loading to false, remove auth_token and user from localStorage, and redirect to /auth/login
-
-      // Proceed to post thread
-      const res = await fetch(`/api/threads`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          title,
-          content,
-          tags,
-          category,
-        }),
-      });
-      if (!res.ok) {
-        const data = await res.json();
-        console.error("Error response from /api/threads:", data); // Log the error response
-        if (res.status === 401) {
-          setError('Session expired or invalid. Please log in again.');
-          localStorage.removeItem('auth_token');
-          localStorage.removeItem('user');
-          router.push('/auth/login');
-        } else if (res.status === 403) {
-          setError('You do not have permission to create a thread.');
-        }
-        else {
-          setError(data.message || 'Failed to create thread');
-        }
-        setLoading(false);
-        return;
+        console.log("Creating thread with user:", user);
+      
+      // For debugging: get the Clerk token directly to see if it's available
+      try {
+        const { getToken } = await import('@clerk/nextjs');
+        const token = await getToken();
+        console.log("Clerk token available:", !!token);
+      } catch (e) {
+        console.error("Error getting Clerk token:", e);
       }
-      const data = await res.json();
-      router.push(`/forums/${category}/${data.slug}`);
-    } catch (err: any) {
+        console.log("Submitting thread with category:", category, 
+        categoryOptions?.find(cat => cat.slug === category));
+      
+      // Proceed to post thread using the API module
+      const data = await threadsApi.create({
+        title,
+        content,
+        tags,
+        category, // This should be the category slug
+      });
+      
+      console.log("Thread created successfully:", data);
+      
+      // If successful, navigate to the new thread
+      router.push(`/forums/${category}/${data.slug}`);} catch (err: any) {
       console.error("Error during thread creation:", err); // Log the error
-      setError('An error occurred. Please try again.');
+      
+      // Extract more meaningful error message if available
+      let errorMsg = 'An error occurred. Please try again.';
+      if (err instanceof ApiError) {
+        errorMsg = `Error ${err.status}: ${err.message}`;
+        console.log("API error details:", err);
+      } else if (err && err.message) {
+        errorMsg = err.message;
+      }
+      
+      setError(errorMsg);
       setLoading(false);
     }
   };

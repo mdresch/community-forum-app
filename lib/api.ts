@@ -60,9 +60,25 @@ export async function apiRequest<T>(
 
   // Add auth token if required
   if (requiresAuth) {
-    const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
+    // Try to get token from Clerk if available, fallback to localStorage for backward compatibility
+    let token = null;
+    if (typeof window !== 'undefined') {
+      try {
+        // Using dynamic import to avoid SSR issue [CCFA-14]s
+        console.log('[API] Getting Clerk token for authenticated request to:', endpoint);
+        const { getToken } = await import('@clerk/nextjs');
+        token = await getToken();
+        console.log('[API] Clerk token obtained:', !!token);
+      } catch (e) {
+        console.warn('Could not get Clerk token, falling back to localStorage:', e);
+        token = localStorage.getItem('auth_token');
+      }
+    }
+    
     if (token) {
       headers['Authorization'] = `Bearer ${token}`;
+    } else {
+      console.warn('No auth token available for request that requires authentication');
     }
   }
 
@@ -79,6 +95,17 @@ export async function apiRequest<T>(
     if (!response.ok) {
       const handleError = async (response: Response) => {
         let errorData = { message: 'Unknown error' }; 
+        
+        if (response.status === 401) {
+          console.error('Authentication error - 401 Unauthorized', {
+            endpoint,
+            requiresAuth,
+          });
+          if (requiresAuth) {
+            errorData.message = 'You need to be logged in to perform this action';
+          }
+        }
+        
         try {
           // Try to parse error response as JSON
           errorData = await response.json();
@@ -153,6 +180,17 @@ export const auth = {
     if (typeof window !== 'undefined') {
       localStorage.setItem('auth_token', token);
     }
+  },
+  
+  getUserByClerkId: async (clerkId: string) => {
+    return apiRequest(`users/by-clerk/${clerkId}`);
+  },
+  
+  createUserFromClerk: async (user: { id: string; username?: string; email?: string; avatar?: string }) => {
+    return apiRequest('users/from-clerk', {
+      method: 'POST',
+      body: user,
+    });
   },
 };
 

@@ -31,7 +31,42 @@ export function verifyToken(token: string) {
 
 export async function getUserFromRequest(req: NextApiRequest | NextRequest) {
   try {
-    // Get token from header
+    // For Clerk authentication
+    if (req.headers.has('clerk-auth-token')) {
+      try {
+        // Import the Clerk auth helpers
+        const { getAuth } = await import('@clerk/nextjs/server');
+        
+        // For App Router requests
+        if (req instanceof NextRequest) {
+          const { userId } = getAuth(req);
+          if (!userId) {
+            return null;
+          }
+          
+          // Find the user in our database by clerkId
+          const { default: User } = await import('@/models/User');
+          const mongoUser = await User.findOne({ clerkId: userId });
+          
+          if (!mongoUser) {
+            console.warn(`User with Clerk ID ${userId} not found in MongoDB`);
+            return null;
+          }
+          
+          return {
+            id: mongoUser._id,
+            username: mongoUser.username,
+            email: mongoUser.email,
+            role: mongoUser.role,
+          };
+        }
+      } catch (e) {
+        console.error('Error verifying Clerk auth:', e);
+        return null;
+      }
+    }
+    
+    // Legacy JWT authentication
     let token: string | undefined;
     
     if (req instanceof NextRequest) {
@@ -55,6 +90,7 @@ export async function getUserFromRequest(req: NextApiRequest | NextRequest) {
     
     return decoded;
   } catch (error) {
+    console.error('Auth error:', error);
     return null;
   }
 }

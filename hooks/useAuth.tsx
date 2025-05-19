@@ -1,100 +1,76 @@
 "use client";
 
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { auth } from '@/lib/api';
+import { ReactNode, createContext, useContext, useEffect, useState } from 'react';
+import { useUser, useAuth as useClerkAuth } from '@clerk/nextjs';
+import { auth as apiAuth } from '@/lib/api';
 
 interface User {
   id: string;
-  username: string;
-  email: string;
-  role: string;
+  username?: string;
+  email?: string;
+  role?: string;
   avatar?: string;
-}
-
-interface AuthResponse {
-  user: User;
-  token: string;
 }
 
 interface AuthContextType {
   user: User | null;
   isLoading: boolean;
-  login: (email: string, password: string) => Promise<void>;
-  register: (username: string, email: string, password: string) => Promise<void>;
   logout: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
+  const { user: clerkUser, isLoaded } = useUser();
+  const { signOut } = useClerkAuth();
+  const [mongoUser, setMongoUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Check if user is already logged in
-    const token = localStorage.getItem('auth_token');
-    if (token) {
-      // TODO: Implement token verification endpoint
-      // For now, we'll just assume the user is logged in if a token exists
-      // In a real app, you'd verify the token on the server
+    console.log('[AuthProvider] Clerk user:', clerkUser, 'isLoaded:', isLoaded);
+    async function syncMongoUser() {
+      if (!clerkUser) {
+        setMongoUser(null);
+        setIsLoading(false);
+        console.log('[AuthProvider] No Clerk user, set mongoUser to null');
+        return;
+      }
+      setIsLoading(true);
       try {
-        const userJson = localStorage.getItem('user');
-        if (userJson) {
-          setUser(JSON.parse(userJson));
+        let user = await apiAuth.getUserByClerkId(clerkUser.id);
+        console.log('[AuthProvider] MongoDB user fetched:', user);
+        if (!user) {
+          user = await apiAuth.createUserFromClerk({
+            id: clerkUser.id,
+            username: clerkUser.username || clerkUser.primaryEmailAddress?.emailAddress?.split('@')[0],
+            email: clerkUser.primaryEmailAddress?.emailAddress,
+            avatar: clerkUser.imageUrl,
+          });
+          console.log('[AuthProvider] MongoDB user created:', user);
         }
-      } catch (error) {
-        console.error('Failed to parse user data:', error);
-        // Clear invalid data
-        localStorage.removeItem('auth_token');
-        localStorage.removeItem('user');
+        setMongoUser(user);
+      } catch (e) {
+        setMongoUser(null);
+        console.error('[AuthProvider] Error fetching/creating MongoDB user:', e);
+      } finally {
+        setIsLoading(false);
       }
     }
-    
-    setIsLoading(false);
-  }, []);
-
-  const login = async (email: string, password: string) => {
-    setIsLoading(true);
-    try {
-      const response = await auth.login(email, password) as AuthResponse;
-      setUser(response.user);
-      auth.saveToken(response.token);
-      
-      // Save user data in localStorage for persistence
-      localStorage.setItem('user', JSON.stringify(response.user));
-    } catch (error) {
-      console.error('Login failed:', error);
-      throw error;
-    } finally {
-      setIsLoading(false);
+    if (isLoaded) {
+      syncMongoUser();
     }
-  };
+  }, [clerkUser, isLoaded]);
 
-  const register = async (username: string, email: string, password: string) => {
-    setIsLoading(true);
-    try {
-      const response = await auth.register(username, email, password) as AuthResponse;
-      setUser(response.user);
-      auth.saveToken(response.token);
-      
-      // Save user data in localStorage for persistence
-      localStorage.setItem('user', JSON.stringify(response.user));
-    } catch (error) {
-      console.error('Registration failed:', error);
-      throw error;
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  useEffect(() => {
+    console.log('[AuthProvider] mongoUser state changed:', mongoUser);
+  }, [mongoUser]);
 
   const logout = () => {
-    auth.logout();
-    setUser(null);
-    localStorage.removeItem('user');
+    signOut();
   };
 
   return (
-    <AuthContext.Provider value={{ user, isLoading, login, register, logout }}>
+    <AuthContext.Provider value={{ user: mongoUser, isLoading, logout }}>
       {children}
     </AuthContext.Provider>
   );

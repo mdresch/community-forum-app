@@ -2,9 +2,10 @@ import mongoose, { Schema, Document } from 'mongoose';
 import bcrypt from 'bcrypt';
 
 export interface IUser extends Document {
+  clerkId: string;
   username: string;
   email: string;
-  password: string;
+  password?: string; // Optional when using Clerk
   avatar?: string;
   bio?: string;
   joinDate: Date;
@@ -22,6 +23,7 @@ export interface IUser extends Document {
 
 const UserSchema: Schema = new Schema(
   {
+    clerkId: { type: String, unique: true, index: true, default: '' }, // Clerk user ID for Clerk integration
     username: {
       type: String,
       required: [true, 'Username is required'],
@@ -40,7 +42,10 @@ const UserSchema: Schema = new Schema(
     },
     password: {
       type: String,
-      required: [true, 'Password is required'],
+      required: function() {
+        // Password is only required if there's no Clerk ID
+        return !(this as any).clerkId;
+      },
       minlength: [8, 'Password must be at least 8 characters'],
     },
     avatar: {
@@ -108,7 +113,8 @@ const UserSchema: Schema = new Schema(
 
 // Password hashing middleware
 UserSchema.pre('save', async function (next) {
-  if (!this.isModified('password')) return next();
+  // Skip if password isn't modified or if it's undefined/null
+  if (!this.isModified('password') || !this.password) return next();
 
   try {
     const salt = await bcrypt.genSalt(10);
@@ -121,6 +127,8 @@ UserSchema.pre('save', async function (next) {
 
 // Method to compare passwords
 UserSchema.methods.comparePassword = async function (candidatePassword: string) {
+  // If there's no password (Clerk user), always return false
+  if (!this.password) return false;
   return bcrypt.compare(candidatePassword, this.password as string);
 };
 
