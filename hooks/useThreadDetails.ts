@@ -31,6 +31,7 @@ interface UseThreadDetailsResult {
   posts: PostDetails[];
   isLoading: boolean;
   error: Error | null;
+  refetch: () => Promise<void>; // Add refetch function to the result interface
 }
 
 export function useThreadDetails(slug: string): UseThreadDetailsResult {
@@ -39,34 +40,34 @@ export function useThreadDetails(slug: string): UseThreadDetailsResult {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
 
-  useEffect(() => {
-    async function fetchThreadDetails() {
-      try {
-        setIsLoading(true);
-        
-        // Fetch thread by slug
-        const threadData = await apiRequest<ThreadDetails>(`threads/by-slug/${slug}`);
-        setThread(threadData);
-        
-        // Fetch posts for the thread
-        const postsData = await apiRequest<PostDetails[]>(`posts?thread=${threadData._id}`);
-        setPosts(postsData);
-        
-        setError(null);
-      } catch (err) {
-        console.error('Error fetching thread details:', err);
-        setError(err instanceof Error ? err : new Error('Failed to fetch thread details'));
-      } finally {
-        setIsLoading(false);
-      }
-    }
+  async function fetchThreadDetails() { // Make this function accessible outside useEffect
+    try {
+      setIsLoading(true);
 
+      // Fetch thread by slug
+      const threadData = await apiRequest<ThreadDetails>(`threads/by-slug/${slug}`);
+      setThread(threadData);
+
+      // Fetch posts for the thread
+      const postsData = await apiRequest<PostDetails[]>(`posts?thread=${threadData._id}`);
+      setPosts(postsData);
+
+      setError(null);
+    } catch (err: any) {
+      console.error('Error fetching thread details:', err);
+      setError(err instanceof Error ? err : new Error('Failed to fetch thread details'));
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
+  useEffect(() => {
     if (slug) {
       fetchThreadDetails();
     }
   }, [slug]);
 
-  return { thread, posts, isLoading, error };
+  return { thread, posts, isLoading, error, refetch: fetchThreadDetails }; // Return fetchThreadDetails as refetch
 }
 
 // Fallback data for when API fails or during development

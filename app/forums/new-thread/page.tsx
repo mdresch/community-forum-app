@@ -11,6 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/hooks/useAuth";
 import { useCategories } from "@/hooks/useForumData";
+import { useRefreshToken } from "@/hooks/useRefreshToken";
 
 export default function NewThreadPage() {
   const router = useRouter();
@@ -23,6 +24,8 @@ export default function NewThreadPage() {
   const [category, setCategory] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+
+  const { refreshTokenLoading, refreshTokenError } = useRefreshToken();
 
   const handleAddTag = () => {
     if (tagInput.trim() && !tags.includes(tagInput.trim())) {
@@ -40,9 +43,25 @@ export default function NewThreadPage() {
     setError(null);
     setLoading(true);
     try {
+      // Pre-flight: check session validity
+      const token = localStorage.getItem('auth_token');
+      if (!token) {
+        setError('Authentication token not found. Please log in again.');
+        setLoading(false);
+        router.push('/auth/login');
+        return;
+      }
+
+      // TODO: Implement proper session validation here. Replace the commented out code with the correct endpoint.
+      // If session is invalid, set error, loading to false, remove auth_token and user from localStorage, and redirect to /auth/login
+
+      // Proceed to post thread
       const res = await fetch(`/api/threads`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
         body: JSON.stringify({
           title,
           content,
@@ -52,14 +71,26 @@ export default function NewThreadPage() {
       });
       if (!res.ok) {
         const data = await res.json();
-        setError(data.message || "Failed to create thread");
+        console.error("Error response from /api/threads:", data); // Log the error response
+        if (res.status === 401) {
+          setError('Session expired or invalid. Please log in again.');
+          localStorage.removeItem('auth_token');
+          localStorage.removeItem('user');
+          router.push('/auth/login');
+        } else if (res.status === 403) {
+          setError('You do not have permission to create a thread.');
+        }
+        else {
+          setError(data.message || 'Failed to create thread');
+        }
         setLoading(false);
         return;
       }
       const data = await res.json();
       router.push(`/forums/${category}/${data.slug}`);
-    } catch (err) {
-      setError("An error occurred. Please try again.");
+    } catch (err: any) {
+      console.error("Error during thread creation:", err); // Log the error
+      setError('An error occurred. Please try again.');
       setLoading(false);
     }
   };

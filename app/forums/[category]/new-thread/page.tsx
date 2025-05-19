@@ -1,7 +1,7 @@
 // app/forums/[category]/new-thread/page.tsx
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -23,6 +23,13 @@ export default function NewThreadPage() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
+  // Redirect to login if user is not authenticated
+  useEffect(() => {
+    if (!user) {
+      router.push('/auth/login');
+    }
+  }, [user, router]);
+
   const handleAddTag = () => {
     if (tagInput.trim() && !tags.includes(tagInput.trim())) {
       setTags([...tags, tagInput.trim()]);
@@ -36,16 +43,26 @@ export default function NewThreadPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!user) {
+      setError("You must be logged in to create a thread");
+      return;
+    }
+    
     setError(null);
     setLoading(true);
     try {
-      // Get JWT token from localStorage
-      const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
+      const token = localStorage.getItem('auth_token');
+      if (!token) {
+        setError("Authentication token not found. Please log in again.");
+        router.push('/auth/login');
+        return;
+      }
+
       const res = await fetch(`/api/threads`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          "Authorization": `Bearer ${token}`
         },
         body: JSON.stringify({
           title,
@@ -54,12 +71,21 @@ export default function NewThreadPage() {
           category,
         }),
       });
+
       if (!res.ok) {
         const data = await res.json();
+        if (res.status === 401) {
+          // Token expired or invalid
+          localStorage.removeItem('auth_token');
+          localStorage.removeItem('user');
+          router.push('/auth/login');
+          return;
+        }
         setError(data.message || "Failed to create thread");
         setLoading(false);
         return;
       }
+      
       const data = await res.json();
       router.push(`/forums/${category}/${data.slug}`);
     } catch (err) {
@@ -117,8 +143,7 @@ export default function NewThreadPage() {
                   Add Tag
                 </Button>
               </div>
-            </div>
-            {error && <div className="text-red-500 text-sm">{error}</div>}
+            </div>            {error && <div className="text-red-500 text-sm">{error}</div>}
             <div className="flex gap-2 justify-end">
               <Button asChild variant="ghost" type="button">
                 <Link href={`/forums/${category}`}>Cancel</Link>

@@ -13,6 +13,7 @@ import { formatDistanceToNow } from "date-fns"
 import { useThreadDetails, getFallbackThreadData, getFallbackPosts } from "@/hooks/useThreadDetails"
 import { useAuth } from "@/hooks/useAuth"
 import { ThreadVoting } from "@/components/voting/thread-voting"
+import { posts as apiPosts } from '@/lib/api'; // Import the posts API functions
 
 // Loading skeleton component for thread content
 const ThreadSkeleton = () => (
@@ -34,21 +35,51 @@ const ThreadSkeleton = () => (
 
 export default function ThreadPage({ params }: { params: Promise<{ category: string; thread: string }> }) {
   const { category, thread: threadSlug } = React.use(params);
-  const { thread: threadData, posts, isLoading, error } = useThreadDetails(threadSlug)
+  const { thread: threadData, posts, isLoading, error, refetch } = useThreadDetails(threadSlug) // Get refetch from the hook
   const { user } = useAuth()
   const [newComment, setNewComment] = useState("")
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
   
   // Use the real data or fallback data if loading or error occurred
   // Using non-null assertion for threadData since we always provide a fallback
   const thread = (isLoading || error || !threadData) ? getFallbackThreadData() : threadData
   const comments = isLoading || error ? getFallbackPosts() : posts
 
-  const handleSubmitComment = (e: React.FormEvent) => {
+  const handleSubmitComment = async (e: React.FormEvent) => {
     e.preventDefault()
-    // In a real app, this would send the comment to the server
-    // TODO: Implement API call to submit comment
-    alert(`Comment submitted: ${newComment}`)
-    setNewComment("")
+
+    if (!user) { // Add this check
+      setSubmitError("You must be logged in to post a comment.");
+      return;
+    }
+
+    if (!newComment.trim()) {
+      setSubmitError("Comment cannot be empty.");
+      return;
+    }
+    if (!threadData?._id) { // Use threadData._id for the thread ID
+        setSubmitError("Thread ID is missing. Cannot post comment.");
+        return;
+    }
+
+    setIsSubmitting(true);
+    setSubmitError(null);
+
+    try {
+      await apiPosts.create({
+        content: newComment,
+        thread: threadData._id, // Use threadData._id
+        // parentPost: parentId, // Add this if replying to a specific comment
+      });
+      setNewComment(''); // Clear the textarea
+      refetch(); // Refetch comments after successful post
+    } catch (err: any) { // Fix type error here
+      console.error("Failed to post comment:", err);
+      setSubmitError(err.message || 'Failed to post comment. Please ensure you are logged in and try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   return (
@@ -226,7 +257,7 @@ export default function ThreadPage({ params }: { params: Promise<{ category: str
                     onChange={(e) => setNewComment(e.target.value)}
                     className="min-h-32"
                     required
-                    disabled={!user}
+                    disabled={!user || isSubmitting}
                   />
                   {!user && (
                     <p className="mt-2 text-sm text-muted-foreground">
@@ -234,7 +265,10 @@ export default function ThreadPage({ params }: { params: Promise<{ category: str
                     </p>
                   )}
                 </div>
-                <Button type="submit" disabled={!user}>Post Comment</Button>
+                <Button type="submit" disabled={!user || isSubmitting || !newComment.trim()}>
+                  {isSubmitting ? 'Submitting...' : 'Post Comment'}
+                </Button>
+                {submitError && <p className="mt-2 text-sm text-red-600">{submitError}</p>}
               </form>
             </CardContent>
           </Card>
