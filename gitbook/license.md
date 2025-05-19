@@ -1,4 +1,5 @@
 # License
 
-This project is licensed under the **MIT License**. See the [LICENSE](https://www.google.com/url?sa=E\&q=LICENSE) file for details.\
-(Note: There is no LICENSE file in the repository currently. You should add one, typically MIT for open-source projects.)
+This project is licensed under the **MIT License**. See the [LICENSE](../../LICENSE) file for details.
+
+> **Note:** If the LICENSE file is missing, please add one to clarify the project's open-source status.

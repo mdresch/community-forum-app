@@ -36,7 +36,7 @@ export async function GET(request: Request, context: { params: { slug: string } 
         isLocked: thread.isLocked,
         replies,
         views: thread.viewCount || 0,
-        likes: thread.likes ? thread.likes.length : 0,
+        likes: thread.likes || [], // <-- send the array, not the count
         lastActivity: thread.updatedAt || thread.createdAt,
         tags: thread.tags || [],
         slug: thread.slug,

@@ -4,13 +4,13 @@ import User from '@/models/User';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { clerkId: string } }
+  context: { params: { clerkId: string } }
 ) {
   try {
     await connectToDatabase();
     
-    // Fix: Ensure params is properly handled in App Router
-    const clerkId = params.clerkId;
+    // Fix: Await params if needed (App Router best practice)
+    const { clerkId } = await context.params;
     if (!clerkId) {
       return NextResponse.json(
         { message: 'Clerk ID is required' },

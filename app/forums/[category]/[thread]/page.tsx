@@ -14,6 +14,7 @@ import { useThreadDetails, getFallbackThreadData, getFallbackPosts } from "@/hoo
 import { useAuth } from "@/hooks/useAuth"
 import { ThreadVoting } from "@/components/voting/thread-voting"
 import { posts as apiPosts } from '@/lib/api'; // Import the posts API functions
+import { useToast } from "@/components/ui/use-toast"; // Adjust path if needed
 
 // Loading skeleton component for thread content
 const ThreadSkeleton = () => (
@@ -40,43 +41,125 @@ export default function ThreadPage({ params }: { params: Promise<{ category: str
   const [newComment, setNewComment] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const { toast } = useToast();
   
+  // State to track optimistic UI updates for likes
+  const [likedComments, setLikedComments] = useState<Set<string>>(new Set());
+
+  // Function to handle liking a comment
+  const handleLikeComment = async (commentId: string) => {
+    if (!user) {
+      toast({
+        title: "Not signed in",
+        description: "Please sign in to like comments",
+        status: "error",
+      });
+      return;
+    }
+    
+    // Optimistic UI update
+    setLikedComments(prev => {
+      const newSet = new Set(prev);
+      newSet.add(commentId);
+      return newSet;
+    });
+    
+    try {
+      await fetch(`/api/posts/${commentId}/like`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+      });
+      
+      // Refetch comments to get updated data
+      refetch();
+    } catch (err: any) {
+      // Revert optimistic update on error
+      setLikedComments(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(commentId);
+        return newSet;
+      });
+      
+      toast({
+        title: "Error",
+        description: err.message || "Failed to like comment",
+        status: "error",
+      });
+    }
+  };
+
   // Use the real data or fallback data if loading or error occurred
   // Using non-null assertion for threadData since we always provide a fallback
   const thread = (isLoading || error || !threadData) ? getFallbackThreadData() : threadData
   const comments = isLoading || error ? getFallbackPosts() : posts
 
   const handleSubmitComment = async (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
 
-    if (!user) { // Add this check
+    if (!user) {
       setSubmitError("You must be logged in to post a comment.");
+      toast({
+        title: "Not signed in",
+        description: "Please sign in to leave a comment.",
+        status: "error",
+      });
       return;
     }
 
     if (!newComment.trim()) {
       setSubmitError("Comment cannot be empty.");
+      toast({
+        title: "Empty comment",
+        description: "Please enter a comment before submitting.",
+        status: "error",
+      });
       return;
     }
-    if (!threadData?._id) { // Use threadData._id for the thread ID
-        setSubmitError("Thread ID is missing. Cannot post comment.");
-        return;
+    if (!threadData?._id) {
+      setSubmitError("Thread ID is missing. Cannot post comment.");
+      toast({
+        title: "Thread not found",
+        description: "Unable to find the thread to comment on.",
+        status: "error",
+      });
+      return;
     }
 
     setIsSubmitting(true);
     setSubmitError(null);
 
     try {
-      await apiPosts.create({
-        content: newComment,
-        thread: threadData._id, // Use threadData._id
-        // parentPost: parentId, // Add this if replying to a specific comment
+      await fetch('/api/posts', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          // 'Authorization': `Bearer ${token}`, // Only if using JWT
+        },
+        body: JSON.stringify({
+          content: newComment,
+          thread: threadData._id,
+          // Remove authorId here!
+        }),
+        credentials: 'include',
       });
-      setNewComment(''); // Clear the textarea
-      refetch(); // Refetch comments after successful post
-    } catch (err: any) { // Fix type error here
+      setNewComment('');
+      refetch();
+      toast({
+        title: "Comment posted!",
+        description: "Your comment was added successfully.",
+        status: "success",
+      });
+    } catch (err: any) {
       console.error("Failed to post comment:", err);
       setSubmitError(err.message || 'Failed to post comment. Please ensure you are logged in and try again.');
+      toast({
+        title: "Error",
+        description: err.message || "Failed to post comment.",
+        status: "error",
+      });
     } finally {
       setIsSubmitting(false);
     }
@@ -227,9 +310,21 @@ export default function ThreadPage({ params }: { params: Promise<{ category: str
                 </CardContent>
                 <CardFooter className="flex items-center justify-between border-t px-6 py-3">
                   <div className="flex items-center gap-4">
-                    <Button variant="ghost" size="sm" className="flex items-center gap-1">
-                      <ThumbsUp className="h-4 w-4" />
-                      <span>{comment.likes ? comment.likes.length : 0}</span>
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="flex items-center gap-1"
+                      onClick={() => handleLikeComment(comment._id)}
+                      disabled={!user || likedComments.has(comment._id)}
+                    >
+                      <ThumbsUp className={`h-4 w-4 ${likedComments.has(comment._id) ? "fill-current text-primary" : ""}`} />
+                      <span>
+                        {comment.likes 
+                          ? likedComments.has(comment._id) 
+                            ? comment.likes.length + 1 
+                            : comment.likes.length
+                          : likedComments.has(comment._id) ? 1 : 0}
+                      </span>
                     </Button>
                   </div>
                   <div>

@@ -22,7 +22,13 @@ export default function AdminDashboard() {
   useEffect(() => {
     async function fetchStats() {
       const [usersRes, threadsRes, postsRes, reportsRes] = await Promise.all([
-        fetch("/api/users/admin-list"),
+        (async () => {
+          const usersRes = await fetch("/api/users/admin-list/")
+          if (!usersRes.ok) {
+            throw new Error("Failed to fetch users: " + usersRes.status)
+          }
+          return usersRes
+        })(),
         fetch("/api/threads"),
         fetch("/api/posts?today=1"),
         fetch("/api/reports?status=Pending"),

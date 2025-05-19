@@ -63,8 +63,6 @@ npm install
 cd ..
 ```
 
-content\_copydownloadUse code [with caution](https://support.google.com/legal/answer/13505487).Bash
-
 #### 3. Set Up Environment Variables (Backend)
 
 The backend server requires environment variables, primarily for the MongoDB connection string and JWT secret.
@@ -75,14 +73,12 @@ The backend server requires environment variables, primarily for the MongoDB con
     cd server
     ```
 
-    content\_copydownloadUse code [with caution](https://support.google.com/legal/answer/13505487).Bash
 2.  Create a .env file by copying the example file:
 
     ```
     cp .env.example .env
     ```
 
-    content\_copydownloadUse code [with caution](https://support.google.com/legal/answer/13505487).Bash
 3.  Open the newly created .env file in your code editor and configure the variables:
 
     ```
@@ -93,7 +89,6 @@ The backend server requires environment variables, primarily for the MongoDB con
     JWT_EXPIRE=30d
     ```
 
-    content\_copydownloadUse code [with caution](https://support.google.com/legal/answer/13505487).Ini
 
     * **MONGO\_URI**:
       * If you installed MongoDB locally and it's running on the default port, mongodb://localhost:27017/communityforum should work. You can change communityforum to any database name you prefer; MongoDB will create it if it doesn't exist.
@@ -105,7 +100,6 @@ The backend server requires environment variables, primarily for the MongoDB con
     cd ..
     ```
 
-    content\_copydownloadUse code [with caution](https://support.google.com/legal/answer/13505487).Bash
 
 #### 4. Start MongoDB
 
@@ -119,7 +113,6 @@ Ensure your MongoDB server is running.
     docker run -d -p 27017:27017 --name mongodb-forum mongo
     ```
 
-    content\_copydownloadUse code [with caution](https://support.google.com/legal/answer/13505487).Bash
 
     This will start a MongoDB instance accessible on localhost:27017. The data will be lost if the container is removed unless you set up a volume. For development, this is often fine.
 
@@ -133,7 +126,6 @@ From the **root** directory (community-forum-app):
 npm run dev
 ```
 
-content\_copydownloadUse code [with caution](https://support.google.com/legal/answer/13505487).Bash
 
 This command executes:\
 concurrently "npm run server --prefix server" "npm run start --prefix client"
@@ -150,6 +142,14 @@ Once the npm run dev command is running successfully:
 
 You should now have the community forum app running locally!
 
+### Running Tests
+
+From the root directory:
+
+```
+npm test
+```
+
 ### Troubleshooting / Notes
 
 * **Port Conflicts:** If port 3000 or 5000 is already in use, the application might fail to start or React might ask if you want to run on another port.
@@ -158,6 +158,16 @@ You should now have the community forum app running locally!
 * **MongoDB Connection Issues:** Ensure MongoDB is running and accessible at the URI specified in server/.env. Check your firewall if connecting to a remote MongoDB instance.
 * **NODE\_ENV**: The .env.example sets NODE\_ENV=production. For development, it's better to set it to development as shown in the instructions above. This can affect error logging and other behaviors.
 * **Initial Admin/User:** You will likely need to register a new user through the application's UI to start using it.
+
+## Project Structure
+
+```
+community-forum-app/
+├── client/      # React frontend
+├── server/      # Node.js/Express backend
+├── gitbook/     # Documentation
+└── package.json
+```
 
 ```markup
 This README provides a comprehensive guide for someone to get the project up and running. Remember to commit this file (or a similar one) to your repository so others (and your future self) can easily set it up.

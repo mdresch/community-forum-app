@@ -16,12 +16,24 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { MoreHorizontal, Search, UserPlus } from "lucide-react"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { useToast } from "@/hooks/use-toast";
 
 export function AdminUsersList() {
   const [searchQuery, setSearchQuery] = useState("");
   const [users, setUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { toast } = useToast();
+  const [showCreate, setShowCreate] = useState(false);
+  const [newUser, setNewUser] = useState({
+    username: "",
+    email: "",
+    password: "",
+    role: "user",
+  });
+  const [creating, setCreating] = useState(false);
 
   useEffect(() => {
     async function fetchUsers() {
@@ -41,6 +53,30 @@ export function AdminUsersList() {
     fetchUsers();
   }, []);
 
+  const handleCreateUser = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setCreating(true);
+    try {
+      const res = await fetch("/api/users", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(newUser),
+      });
+      if (!res.ok) throw new Error("Failed to create user");
+      toast({ title: "User created!", description: "The user was created successfully.", variant: "default" });
+      setShowCreate(false);
+      setNewUser({ username: "", email: "", password: "", role: "user" });
+      // Refresh user list
+      setLoading(true);
+      const res2 = await fetch("/api/users/admin-list/");
+      setUsers(await res2.json());
+    } catch (err: any) {
+      toast({ title: "Error", description: err.message || "Failed to create user", variant: "destructive" });
+    } finally {
+      setCreating(false);
+    }
+  };
+
   const filteredUsers = users.filter(
     (user) =>
       user.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -56,12 +92,47 @@ export function AdminUsersList() {
             <CardTitle>Users</CardTitle>
             <CardDescription>Manage user accounts and permissions</CardDescription>
           </div>
-          <Button>
+          <Button onClick={() => setShowCreate(true)}>
             <UserPlus className="mr-2 h-4 w-4" />
             Add User
           </Button>
         </div>
       </CardHeader>
+      <Dialog open={showCreate} onOpenChange={setShowCreate}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Create New User</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleCreateUser} className="space-y-4">
+            <div>
+              <Label htmlFor="username">Username</Label>
+              <Input id="username" value={newUser.username} onChange={e => setNewUser(u => ({ ...u, username: e.target.value }))} required />
+            </div>
+            <div>
+              <Label htmlFor="email">Email</Label>
+              <Input id="email" type="email" value={newUser.email} onChange={e => setNewUser(u => ({ ...u, email: e.target.value }))} required />
+            </div>
+            <div>
+              <Label htmlFor="password">Password</Label>
+              <Input id="password" type="password" value={newUser.password} onChange={e => setNewUser(u => ({ ...u, password: e.target.value }))} required minLength={8} />
+            </div>
+            <div>
+              <Label htmlFor="role">Role</Label>
+              <select id="role" className="w-full border rounded px-3 py-2" value={newUser.role} onChange={e => setNewUser(u => ({ ...u, role: e.target.value }))}>
+                <option value="user">User</option>
+                <option value="moderator">Moderator</option>
+                <option value="admin">Admin</option>
+              </select>
+            </div>
+            <DialogFooter>
+              <Button type="submit" disabled={creating}>{creating ? "Creating..." : "Create User"}</Button>
+              <DialogClose asChild>
+                <Button type="button" variant="outline">Cancel</Button>
+              </DialogClose>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
       <CardContent>
         <div className="mb-4 flex items-center gap-2">
           <div className="relative flex-1">
@@ -103,13 +174,13 @@ export function AdminUsersList() {
                 <TableHead className="w-[80px]"></TableHead>
               </TableRow>
             </TableHeader>
-            {loading ? (
-              <div className="p-4 text-center">Loading users...</div>
-            ) : error ? (
-              <div className="p-4 text-center text-red-500">{error}</div>
-            ) : (
-              <TableBody>
-                {filteredUsers.map((user) => (
+            <TableBody>
+              {loading ? (
+                <TableRow><TableCell colSpan={7} className="text-center">Loading users...</TableCell></TableRow>
+              ) : error ? (
+                <TableRow><TableCell colSpan={7} className="text-center text-red-500">{error}</TableCell></TableRow>
+              ) : (
+                filteredUsers.map((user) => (
                   <TableRow key={user.id}>
                     <TableCell>
                       <div className="flex items-center gap-3">
@@ -165,12 +236,12 @@ export function AdminUsersList() {
                       </DropdownMenu>
                     </TableCell>
                   </TableRow>
-                ))}
-              </TableBody>
-            )}
+                ))
+              )}
+            </TableBody>
           </Table>
         </div>
       </CardContent>
     </Card>
-  )
+  );
 }

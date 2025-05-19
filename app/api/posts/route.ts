@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { connectToDatabase } from '@/lib/db';
 import Post from '@/models/Post';
-import { getUserFromRequest } from '@/lib/auth';
+import { currentUser } from "@clerk/nextjs/server"; // or "@clerk/nextjs/api" for API routes
+import User from '@/models/User'; // Changed from { User } to default import
 
 export async function GET(request: NextRequest) {
   try {
@@ -36,35 +37,42 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    await connectToDatabase();
-    
-    const user = await getUserFromRequest(request);
+    // Get the authenticated user from Clerk
+    const user = await currentUser();
     if (!user) {
       return NextResponse.json(
         { message: 'Unauthorized' },
         { status: 401 }
       );
     }
-    
-    const { content, thread, parentPost } = await request.json();
-    
-    // Use user._id if available, otherwise fallback to user.id or user.sub
-    const authorId = (user && (user._id || user.id || user.sub)) ? (user._id || user.id || user.sub) : user;
 
-    const newPost = new Post({
+    // Connect to the database
+    await connectToDatabase();
+    
+    // Get the request body
+    const { content, thread } = await request.json();
+    
+    // Find the internal user ID based on the Clerk ID
+    const dbUser = await User.findOne({ clerkId: user.id });
+    if (!dbUser) {
+      return NextResponse.json(
+        { message: 'User not found in database' },
+        { status: 404 }
+      );
+    }
+
+    // Create the post with the internal user ID
+    const newPost = await Post.create({
       content,
-      author: authorId,
       thread,
-      parentPost: parentPost || null,
+      author: dbUser._id, // Use the MongoDB ObjectId here
     });
-    
-    await newPost.save();
-    
+
     return NextResponse.json(newPost, { status: 201 });
   } catch (error) {
     console.error('Error creating post:', error);
     return NextResponse.json(
-      { message: 'Failed to fetch posts' },
+      { message: 'Failed to create post', error: (error as Error).message },
       { status: 500 }
     );
   }

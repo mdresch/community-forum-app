@@ -84,18 +84,20 @@ export default async function CategoryPage({ params }: { params: { category: str
                     </div>
                     <div className="flex items-center gap-1">
                       <ThumbsUp className="h-4 w-4" />
-                      <span>{thread.likes}</span>
+                      <span>{thread.likes ? thread.likes.length : 0}</span>
                     </div>
                   </div>
                 </div>
                 <div className="mt-3 flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <Avatar className="h-6 w-6">
-                      <AvatarImage src={thread.author.avatar || "/placeholder.svg"} alt={thread.author.name} />
-                      <AvatarFallback>{thread.author && thread.author.name ? thread.author.name.charAt(0) : 'U'}</AvatarFallback>
+                      <AvatarImage src={thread.author?.avatar || "/placeholder.svg"} alt={thread.author?.name || "User"} />
+                      <AvatarFallback>
+                        {thread.author?.name ? thread.author.name.charAt(0) : 'U'}
+                      </AvatarFallback>
                     </Avatar>
                     <span className="text-xs">
-                      Started by <span className="font-medium">{thread.author.name}</span>
+                      Started by <span className="font-medium">{thread.author?.name || "Unknown"}</span>
                     </span>
                   </div>
                   <span className="text-xs text-muted-foreground">

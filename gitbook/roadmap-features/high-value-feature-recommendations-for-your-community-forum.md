@@ -1,5 +1,13 @@
 # High-Value Feature Recommendations for Your Community Forum
 
+## Overview
+
+This document outlines strategic, high-value features to consider for the future development of the Community Forum App. These recommendations are intended to guide roadmap planning and inspire new ways to drive engagement and value for your users.
+
+For the full roadmap and implementation status, see [Roadmap Overview](../roadmap.md).
+
+**Have a feature idea?** Open an issue or join the discussion in the [Feature Requests](../feature-requests.md) section.
+
 #### High-Value Feature Recommendations for Your Community Forum
 
 Based on the comprehensive community forum we've built so far, here are strategic feature recommendations that could significantly enhance user engagement, retention, and platform value.
@@ -151,4 +159,8 @@ Based on the comprehensive community forum we've built so far, here are strategi
 
 **Value Add:** Adds a human element to digital interactions, accommodates different content consumption preferences, and enables engagement in new contexts (e.g., while commuting).
 
-***
+| Feature                       | Impact | Effort |
+|-------------------------------|--------|--------|
+| AI-Powered Recommendations    | High   | High   |
+| Community Knowledge Base      | High   | Medium |
+| ...                           | ...    | ...    |
