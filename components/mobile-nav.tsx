@@ -101,6 +101,31 @@ export function MobileNav() {
                 Jobs & Opportunities
               </Link>
             </SheetClose>
+            {/* New categories */}
+            <SheetClose asChild>
+              <Link
+                href="/forums/bug-reports"
+                className="flex items-center rounded-md px-4 py-1 text-sm hover:bg-accent hover:text-accent-foreground text-red-500"
+              >
+                Bug Reports
+              </Link>
+            </SheetClose>
+            <SheetClose asChild>
+              <Link
+                href="/forums/showcase"
+                className="flex items-center rounded-md px-4 py-1 text-sm hover:bg-accent hover:text-accent-foreground text-yellow-500"
+              >
+                Showcase
+              </Link>
+            </SheetClose>
+            <SheetClose asChild>
+              <Link
+                href="/forums/help-needed"
+                className="flex items-center rounded-md px-4 py-1 text-sm hover:bg-accent hover:text-accent-foreground text-blue-500"
+              >
+                Help Needed
+              </Link>
+            </SheetClose>
 
             {/* Community Section */}
             <div className="px-2 py-1 text-sm font-medium">Community</div>

@@ -65,6 +65,28 @@ async function seedData() {
       icon: 'Briefcase',
       order: 6,
     },
+    // New categories
+    {
+      name: 'Bug Reports',
+      description: 'Report bugs and issues with the platform',
+      slug: 'bug-reports',
+      icon: 'HelpCircle', // changed from 'Bug'
+      order: 7,
+    },
+    {
+      name: 'Showcase',
+      description: 'Show off your projects and achievements',
+      slug: 'showcase',
+      icon: 'Lightbulb', // changed from 'Star'
+      order: 8,
+    },
+    {
+      name: 'Help Needed',
+      description: 'Ask for help on specific problems',
+      slug: 'help-needed',
+      icon: 'HelpCircle', // changed from 'LifeBuoy'
+      order: 9,
+    },
   ];
   
   // Clear existing categories first
@@ -84,6 +106,7 @@ async function seedData() {
       email: 'admin@example.com',
       password: adminPassword,
       role: 'admin',
+      clerkId: 'seed-admin', // ensure unique clerkId
     },
     { upsert: true, new: true }
   );
@@ -97,6 +120,7 @@ async function seedData() {
       password: await bcrypt.hash('password123', 10),
       role: 'user',
       bio: 'Just a regular community member who loves to engage in discussions.',
+      clerkId: 'seed-user', // ensure unique clerkId
     },
     { upsert: true, new: true }
   );
@@ -110,8 +134,11 @@ async function seedData() {
   const generalCategory = await Category.findOne({ slug: 'general-discussion' });
   const introCategory = await Category.findOne({ slug: 'introductions' });
   const devCategory = await Category.findOne({ slug: 'development' });
+  const bugCategory = await Category.findOne({ slug: 'bug-reports' });
+  const showcaseCategory = await Category.findOne({ slug: 'showcase' });
+  const helpNeededCategory = await Category.findOne({ slug: 'help-needed' });
 
-  if (generalCategory && introCategory && devCategory && admin && regularUser) {
+  if (generalCategory && introCategory && devCategory && admin && regularUser && bugCategory && showcaseCategory && helpNeededCategory) {
     // Create sample threads
     const welcomeThread = new Thread({
       title: 'Welcome to our Community Forum!',
@@ -148,6 +175,105 @@ async function seedData() {
     });
     await devThread.save();
 
+    // New: Bug Reports thread
+    const bugThread = new Thread({
+      title: 'Login page throws error on mobile',
+      slug: 'login-page-mobile-error',
+      content: 'I encountered a bug where the login page fails to load on iOS Safari. Anyone else seeing this?',
+      author: regularUser._id,
+      category: bugCategory._id,
+      isSticky: true,
+      viewCount: 30,
+      tags: ['bug', 'login', 'mobile', 'Bug Reports'],
+    });
+    await bugThread.save();
+
+    // New: Showcase thread
+    const showcaseThread = new Thread({
+      title: 'My Portfolio: Built with Next.js & Tailwind',
+      slug: 'portfolio-nextjs-tailwind',
+      content: 'Excited to share my new portfolio site! Built with Next.js 15, Tailwind CSS, and deployed on Vercel. Feedback welcome!',
+      author: admin._id,
+      category: showcaseCategory._id,
+      isSticky: false,
+      viewCount: 60,
+      tags: ['showcase', 'portfolio', 'nextjs', 'Showcase'],
+    });
+    await showcaseThread.save();
+
+    // New: Help Needed thread
+    const helpThread = new Thread({
+      title: 'Help Needed: Debugging React hydration error',
+      slug: 'help-needed-react-hydration',
+      content: 'I keep getting a hydration error in my React app after upgrading to React 19. Any tips on how to debug this?',
+      author: regularUser._id,
+      category: helpNeededCategory._id,
+      isSticky: false,
+      viewCount: 22,
+      tags: ['help', 'react', 'hydration', 'Help Needed'],
+    });
+    await helpThread.save();
+
+    // Add more sample threads for density
+    const threadDocs = [];
+    const threads = [
+      {
+        title: 'Showcase: Open Source Task Manager',
+        slug: 'showcase-open-source-task-manager',
+        content: 'Check out my open source task manager app! Built with MongoDB, Express, React, and Node.js.',
+        author: admin._id,
+        category: showcaseCategory._id,
+        isSticky: false,
+        viewCount: 40,
+        tags: ['showcase', 'mern', 'open-source', 'Showcase'],
+      },
+      {
+        title: 'Bug: Polls not saving votes',
+        slug: 'bug-polls-not-saving',
+        content: 'When I vote in a poll, the vote doesn\'t seem to be saved. Anyone else?',
+        author: regularUser._id,
+        category: bugCategory._id,
+        isSticky: false,
+        viewCount: 18,
+        tags: ['bug', 'polls', 'Bug Reports'],
+      },
+      {
+        title: 'Help Needed: CSS Grid vs Flexbox',
+        slug: 'help-css-grid-vs-flexbox',
+        content: 'Which layout system do you prefer for responsive design, and why? I\'m struggling to choose.',
+        author: admin._id,
+        category: helpNeededCategory._id,
+        isSticky: false,
+        viewCount: 25,
+        tags: ['help', 'css', 'layout', 'Help Needed'],
+      },
+      {
+        title: 'Showcase: Community Forum Dark Mode',
+        slug: 'showcase-forum-dark-mode',
+        content: 'Just launched a dark mode toggle for our forum! Try it out and let me know what you think.',
+        author: regularUser._id,
+        category: showcaseCategory._id,
+        isSticky: false,
+        viewCount: 33,
+        tags: ['showcase', 'dark-mode', 'feature', 'Showcase'],
+      },
+      {
+        title: 'Bug: Notification emails delayed',
+        slug: 'bug-notification-emails-delayed',
+        content: 'I\'ve noticed that notification emails are sometimes delayed by several hours.',
+        author: admin._id,
+        category: bugCategory._id,
+        isSticky: false,
+        viewCount: 12,
+        tags: ['bug', 'notifications', 'Bug Reports'],
+      },
+    ];
+    for (const t of threads) {
+      const threadDoc = new Thread(t);
+      await threadDoc.save();
+      threadDocs.push(threadDoc);
+    }
+
     // Create sample posts (replies)
     const welcomeReply1 = new Post({
       content: 'Thanks for creating this forum! Looking forward to engaging with everyone here.',
@@ -176,6 +302,49 @@ async function seedData() {
       thread: devThread._id,
     });
     await devReply2.save();
+
+    // Add more replies to new threads for density
+    const replies = [
+      {
+        content: 'Thanks for reporting this bug! We\'re looking into the login issue.',
+        author: admin._id,
+        thread: bugThread._id,
+      },
+      {
+        content: 'Great portfolio! Love the clean design and fast load times.',
+        author: regularUser._id,
+        thread: showcaseThread._id,
+      },
+      {
+        content: 'Try using React DevTools to inspect hydration issues. Also, check for mismatched server/client markup.',
+        author: admin._id,
+        thread: helpThread._id,
+      },
+      {
+        content: 'I prefer CSS Grid for complex layouts, but Flexbox is great for 1D alignment.',
+        author: regularUser._id,
+        thread: helpThread._id,
+      },
+      {
+        content: 'We\'re aware of the poll bug and are working on a fix.',
+        author: admin._id,
+        thread: threadDocs[1]._id, // bug-polls-not-saving
+      },
+      {
+        content: 'Dark mode looks awesome! Thanks for adding this feature.',
+        author: admin._id,
+        thread: threadDocs[3]._id, // showcase-forum-dark-mode
+      },
+      {
+        content: 'We\'ll investigate the email delay issue. Thanks for your patience.',
+        author: regularUser._id,
+        thread: threadDocs[4]._id, // bug-notification-emails-delayed
+      },
+    ];
+    for (const r of replies) {
+      const post = new Post(r);
+      await post.save();
+    }
   }
   
   console.log('Seeding complete!');
