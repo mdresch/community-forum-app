@@ -26,8 +26,9 @@ export async function generateMetadata({ params }: MemberPageProps): Promise<Met
   }
 }
 
-export default function MemberPage({ params }: MemberPageProps) {
-  const member = getMemberByUsername(params.username)
+export default async function MemberPage({ params }: MemberPageProps) {
+  const resolvedParams = await params;
+  const member = getMemberByUsername(resolvedParams.username)
 
   if (!member) {
     notFound()
