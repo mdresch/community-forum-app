@@ -14,6 +14,10 @@ const categoryIcons: Record<string, React.ReactNode> = {
   "Ideas & Feedback": <Lightbulb className="h-5 w-5" />,
   "Help & Support": <HelpCircle className="h-5 w-5" />,
   "Jobs & Opportunities": <Briefcase className="h-5 w-5" />,
+  // New categories
+  "Bug Reports": <HelpCircle className="h-5 w-5 text-red-500" />,
+  "Showcase": <Lightbulb className="h-5 w-5 text-yellow-500" />,
+  "Help Needed": <HelpCircle className="h-5 w-5 text-blue-500" />,
 };
 
 export default function ForumCategories() {

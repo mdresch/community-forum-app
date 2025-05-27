@@ -91,6 +91,21 @@ export function MainNav() {
                   title="Jobs & Opportunities"
                   icon={<Briefcase className="h-4 w-4" />}
                 />
+                <ForumCategoryLink
+                  href="/forums/bug-reports"
+                  title="Bug Reports"
+                  icon={<HelpCircle className="h-4 w-4 text-red-500" />} 
+                />
+                <ForumCategoryLink
+                  href="/forums/showcase"
+                  title="Showcase"
+                  icon={<Lightbulb className="h-4 w-4 text-yellow-500" />} 
+                />
+                <ForumCategoryLink
+                  href="/forums/help-needed"
+                  title="Help Needed"
+                  icon={<HelpCircle className="h-4 w-4 text-blue-500" />} 
+                />
               </ul>
             </NavigationMenuContent>
           </NavigationMenuItem>
