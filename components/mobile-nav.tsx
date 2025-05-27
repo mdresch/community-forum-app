@@ -113,7 +113,7 @@ export function MobileNav() {
             <SheetClose asChild>
               <Link
                 href="/forums/showcase"
-                className="flex items-center rounded-md px-4 py-1 text-sm hover:bg-accent hover:text-accent-foreground text-yellow-500"
+                className="flex items-center rounded-md px-4 py-1 text-sm hover:bg-accent hover:text-accent-foreground text-yellow-700"
               >
                 Showcase
               </Link>
