@@ -10,10 +10,25 @@ export async function GET(request: NextRequest) {
     
     const url = new URL(request.url);
     const threadId = url.searchParams.get('thread');
+    const today = url.searchParams.get('today');
     
+    // Handle 'today' parameter for admin dashboard
+    if (today === '1') {
+      // Get posts from today (last 24 hours)
+      const oneDayAgo = new Date();
+      oneDayAgo.setDate(oneDayAgo.getDate() - 1);
+      
+      const todayPosts = await Post.find({
+        createdAt: { $gte: oneDayAgo }
+      });
+      
+      return NextResponse.json(todayPosts);
+    }
+    
+    // Regular post fetching by thread ID
     if (!threadId) {
       return NextResponse.json(
-        { message: 'Thread ID is required' },
+        { message: 'Thread ID is required when not using other filters' },
         { status: 400 }
       );
     }

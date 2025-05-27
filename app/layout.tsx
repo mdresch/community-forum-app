@@ -6,7 +6,7 @@ import { ThemeProvider } from "@/components/theme-provider"
 import { SiteHeader } from "@/components/site-header"
 import { Toaster } from "@/components/ui/toaster"
 import { Analytics } from "@vercel/analytics/next"
-import { ClerkProvider } from '@clerk/nextjs'
+import { ClerkProviderWrapper } from "@/components/providers/clerk-provider"
 import { Geist, Geist_Mono } from 'next/font/google'
 import { AuthProvider } from '@/hooks/useAuth'
 
@@ -30,10 +30,10 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <ClerkProvider>
-      <AuthProvider>
-        <html lang="en" suppressHydrationWarning>
-          <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+    <html lang="en" suppressHydrationWarning>
+      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+        <ClerkProviderWrapper>
+          <AuthProvider>
             <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
               <div className="relative flex min-h-screen flex-col">
                 <SiteHeader />
@@ -60,9 +60,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               </div>
               <Toaster /> {/* Toast notifications */}
             </ThemeProvider>
-          </body>
-        </html>
-      </AuthProvider>
-    </ClerkProvider>
+          </AuthProvider>
+        </ClerkProviderWrapper>
+      </body>
+    </html>
   )
 }

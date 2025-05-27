@@ -57,19 +57,35 @@ export function AdminUsersList() {
     e.preventDefault();
     setCreating(true);
     try {
+      // 1. Create user in Clerk
+      const clerkRes = await fetch("/api/auth/clerk-create-user", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: newUser.email,
+          password: newUser.password,
+          username: newUser.username
+        }),
+      });
+      
+      if (!clerkRes.ok) throw new Error("Failed to create Clerk user");
+      const { clerkId } = await clerkRes.json();
+      
+      // 2. Create user in your database with the Clerk ID
       const res = await fetch("/api/users", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(newUser),
+        body: JSON.stringify({...newUser, clerkId}),
       });
+      
       if (!res.ok) throw new Error("Failed to create user");
       toast({ title: "User created!", description: "The user was created successfully.", variant: "default" });
       setShowCreate(false);
       setNewUser({ username: "", email: "", password: "", role: "user" });
+      
       // Refresh user list
-      setLoading(true);
-      const res2 = await fetch("/api/users/admin-list/");
-      setUsers(await res2.json());
+      const usersRes = await fetch("/api/users/admin-list/");
+      setUsers(await usersRes.json());
     } catch (err: any) {
       toast({ title: "Error", description: err.message || "Failed to create user", variant: "destructive" });
     } finally {

@@ -10,7 +10,9 @@
     "seed": "ts-node scripts/seed-db.ts"
   },
   "dependencies": {
-    "@clerk/nextjs": "^6.19.4",
+    "@clerk/backend": "^1.32.2",
+    "@clerk/clerk-sdk-node": "^5.1.6",
+    "@clerk/nextjs": "5.0.0-beta.31",
     "@hookform/resolvers": "^3.9.1",
     "@radix-ui/react-accordion": "1.2.2",
     "@radix-ui/react-alert-dialog": "1.1.4",

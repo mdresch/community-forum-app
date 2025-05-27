@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { connectToDatabase } from '@/lib/db';
 // Update the import path if the Report model is located elsewhere, for example:
-import Report from '../models/Report';
+import Report from '@/models/Report';
 // Or provide the correct relative path to the Report model file
 
 export async function GET(request: NextRequest) {
