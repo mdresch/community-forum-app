@@ -42,10 +42,13 @@ const PostSchema: Schema = new Schema(
       type: Boolean,
       default: false,
     },
-    likes: [{
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'User',
-    }],
+    likes: {
+      type: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+      }],
+      default: []
+    },
   },
   {
     timestamps: true,
