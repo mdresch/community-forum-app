@@ -55,9 +55,9 @@ postSchema.virtual('replies', {
   foreignField: 'parentPost'
 });
 
-// Update thread lastActivity timestamp when a new post is created
+// Update thread lastActivity timestamp when a post is created or content is modified
 postSchema.pre('save', async function(next) {
-  if (this.isNew) {
+  if (this.isNew || this.isModified('content')) {
     try {
       await mongoose.model('Thread').findByIdAndUpdate(
         this.thread,
