@@ -74,7 +74,7 @@ The project scope statement will include:
   - Advanced analytics features (to be considered in future iterations)
 - **Constraints**: 
   - Budget limitations
-  - Timeline constraints (project completion by Q2 2024)
+  - Timeline constraints (project completion by Q2 2025)
 - **Assumptions**: 
   - All stakeholders will be available for feedback and requirements gathering.
 

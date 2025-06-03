@@ -16,20 +16,20 @@ The Work Breakdown Structure (WBS) Dictionary provides detailed descriptions of 
 - **Deliverables**: Fully functional community forum application.
 
 #### 1.1 Project Management
-- **Description**: Activities related to managing the project, including planning, execution, monitoring, and closing.
+- **Description**: Activities related to managing the project, including planning, monitoring & control, communication, and closing.
 - **Deliverables**: Project management plan, status reports, and meeting minutes.
   
 #### 1.1.1 Project Planning
 - **Description**: Developing the project management plan, defining project scope, and establishing timelines and resources.
 - **Deliverables**: Project Charter, Scope Statement, Work Breakdown Structure, Schedule, and Budget.
 
-#### 1.1.2 Project Execution
-- **Description**: Implementing the project plan through task execution and stakeholder engagement.
-- **Deliverables**: Completed project tasks and stakeholder communication records.
-
-#### 1.1.3 Monitoring & Controlling
-- **Description**: Tracking, reviewing, and regulating the progress and performance of the project.
+#### 1.1.2 Monitoring & Control
+- **Description**: Tracking, reviewing, and regulating the progress and performance of the project, including risk management and quality assurance.
 - **Deliverables**: Status reports, risk management updates, and performance metrics.
+
+#### 1.1.3 Communication
+- **Description**: Managing project communications, including status reports, stakeholder meetings, and documentation.
+- **Deliverables**: Communication plan, meeting minutes, and project documentation.
 
 #### 1.1.4 Project Closure
 - **Description**: Concluding all project activities, formally closing the project, and obtaining stakeholder acceptance.

@@ -1,4 +1,4 @@
-import RateLimiter from '../utils/ratelimiter.js';
+import RateLimiter from '../utils/rateLimiter.js';
 
 class ApiService {
   constructor() {

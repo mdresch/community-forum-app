@@ -47,7 +47,7 @@ Creating a Work Breakdown Structure (WBS) for the Community Forum App involves b
    3.3. Technical Design  
        3.3.1. Database Schema  
        3.3.2. API Design  
-       3.3.3. Deployment Architecture  
+       3.3.3. Deployment Architecture
 
 #### 4. Development Phase
    4.1. Frontend Development  
@@ -97,6 +97,11 @@ Creating a Work Breakdown Structure (WBS) for the Community Forum App involves b
    7.3. Future Enhancements  
        7.3.1. Feature Requests  
        7.3.2. Roadmap Planning  
+
+#### 8. Marketing and Community Engagement
+   8.1. Marketing Strategy Development  
+   8.2. Community Events  
+   8.3. User Feedback Collection  
 
 ### Conclusion
 This WBS provides a structured approach to managing the Community Forum App project, ensuring that all aspects are covered from initiation through deployment and maintenance. The hierarchical decomposition helps in organizing tasks, assigning responsibilities, and tracking progress effectively.
