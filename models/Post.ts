@@ -68,9 +68,9 @@ PostSchema.virtual('replies', {
 PostSchema.pre('save', async function (next) {
   if (this.isNew || this.isModified('content')) {
     try {
-      await mongoose.model('Thread').findByIdAndUpdate(
-        this.thread,
-        { lastActivity: Date.now() }
+      await mongoose.model('Thread').updateOne(
+        { _id: this.thread },
+        { $set: { lastActivity: Date.now() } }
       );
       next();
     } catch (error: any) {
