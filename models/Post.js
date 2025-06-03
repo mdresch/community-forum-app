@@ -68,6 +68,12 @@ postSchema.pre('save', async function(next) {
       );
       next();
     } catch (error) {
+      console.error('Error in Post pre-save hook:', {
+        error: error instanceof Error ? error.message : String(error),
+        operation: this.isNew ? 'new_post' : 'content_modification',
+        threadId: this.thread,
+        stack: error instanceof Error ? error.stack : undefined
+      });
       next(error);
     }
   } else {

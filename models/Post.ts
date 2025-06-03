@@ -73,7 +73,13 @@ PostSchema.pre('save', async function (next) {
         { $set: { lastActivity: Date.now() } }
       );
       next();
-    } catch (error: any) {
+    } catch (error: unknown) {
+      console.error('Error in Post pre-save hook:', {
+        error: error instanceof Error ? error.message : String(error),
+        operation: this.isNew ? 'new_post' : 'content_modification',
+        threadId: this.thread,
+        stack: error instanceof Error ? error.stack : undefined
+      });
       next(error);
     }
   } else {
