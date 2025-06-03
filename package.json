@@ -10,6 +10,7 @@
     "seed": "ts-node scripts/seed-db.ts"
   },
   "dependencies": {
+    "@azure-rest/ai-inference": "^1.0.0-beta.6",
     "@clerk/backend": "^1.32.2",
     "@clerk/clerk-sdk-node": "^5.1.6",
     "@clerk/nextjs": "5.0.0-beta.31",
@@ -58,12 +59,14 @@
     "mongoose": "^8.15.0",
     "next": "15.2.4",
     "next-themes": "latest",
+    "openai": "^5.0.2",
     "react": "^19",
     "react-day-picker": "8.10.1",
     "react-dom": "^19",
     "react-hook-form": "^7.54.1",
     "react-resizable-panels": "^2.1.7",
     "recharts": "latest",
+    "requirements-gathering-agent": "^2.0.0",
     "socket.io-client": "latest",
     "sonner": "^1.7.1",
     "tailwind-merge": "^2.5.5",

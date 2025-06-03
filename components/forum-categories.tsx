@@ -6,7 +6,7 @@ import Link from "next/link";
 import { MessageSquare, Users, Code, Lightbulb, HelpCircle, Briefcase } from "lucide-react";
 // If the file exists with a different extension, update the import accordingly.
 // For example, if the file is ForumCategoriesSkeleton.tsx:
-import ForumCategoriesSkeleton from "./ForumCategoriesSkeleton";
+import ForumCategoriesSkeleton from "./forumCategoriesSkeleton";
 // Or, if the file is named differently or in another folder, update the path:
 // import ForumCategoriesSkeleton from "../someOtherFolder/ForumCategoriesSkeleton";
 import apiService from "../services/apiService";
