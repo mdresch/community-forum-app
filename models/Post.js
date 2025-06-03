@@ -10,12 +10,12 @@ const postSchema = new mongoose.Schema({
   author: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
-    required: true
+    required: [true, 'Author reference is required']
   },
   thread: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Thread',
-    required: true
+    required: [true, 'Thread reference is required']
   },
   parentPost: {
     type: mongoose.Schema.Types.ObjectId,
