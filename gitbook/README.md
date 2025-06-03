@@ -63,43 +63,29 @@ npm install
 cd ..
 ```
 
-#### 3. Set Up Environment Variables (Backend)
+#### 3. Set Up Environment Variables
 
-The backend server requires environment variables, primarily for the MongoDB connection string and JWT secret.
+This project uses two `.env.example` files to help you configure environment variables for both the root and backend server:
 
-1.  Navigate to the server directory:
-
-    ```
-    cd server
-    ```
-
-2.  Create a .env file by copying the example file:
-
-    ```
+- **Root `.env.example`:**
+  - Located at the project root (`/community-forum-app/.env.example`).
+  - Contains variables for Azure AI, GitHub token, Clerk keys, and other global settings.
+  - Copy it to `.env` and fill in your own values:
+    ```bash
     cp .env.example .env
     ```
 
-3.  Open the newly created .env file in your code editor and configure the variables:
-
-    ```
-    NODE_ENV=development
-    PORT=5000 # Or any port you prefer for the backend
-    MONGO_URI=mongodb://localhost:27017/communityforum # Replace 'communityforum' with your desired DB name
-    JWT_SECRET=yourrandomjwtsecretstring # Replace with a long, random, secret string
-    JWT_EXPIRE=30d
-    ```
-
-
-    * **MONGO\_URI**:
-      * If you installed MongoDB locally and it's running on the default port, mongodb://localhost:27017/communityforum should work. You can change communityforum to any database name you prefer; MongoDB will create it if it doesn't exist.
-      * If you're using a cloud MongoDB instance (like MongoDB Atlas), use the connection string they provide.
-    * **JWT\_SECRET**: Generate a strong, random string for this. For example, you can use an online generator or a command like openssl rand -base64 32 in your terminal.
-4.  Navigate back to the root directory:
-
-    ```
+- **Backend `.env.example`:**
+  - Located in the `server` directory (`/community-forum-app/server/.env.example`).
+  - Contains variables for MongoDB connection, JWT secret, and backend-specific settings.
+  - Copy it to `.env` inside the `server` directory:
+    ```bash
+    cd server
+    cp .env.example .env
     cd ..
     ```
 
+Open each `.env` file in your code editor and configure the variables as needed. Comments in the `.env.example` files explain where to get each value.
 
 #### 4. Start MongoDB
 

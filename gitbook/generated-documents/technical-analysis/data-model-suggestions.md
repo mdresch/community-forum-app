@@ -125,3 +125,99 @@ This model tracks moderation actions taken on posts or users.
 - **Security**: Ensure password hashes are securely stored and consider adding fields for password reset tokens or multi-factor authentication.
 
 This data model provides a robust structure to support the expected functionalities of a community forum app, such as user interactions, content management, and moderation features.
+
+# Data Model: Actual Implementation (as of 2025-06-03)
+
+Below are the actual Mongoose models implemented in the codebase for the community forum app backend. This reflects the current JavaScript backend structure and field names/types.
+
+---
+
+## User
+- clerkId: String (unique, index, default: '')
+- username: String (required, unique, trim, minlength: 3, maxlength: 30)
+- email: String (required, unique, trim, lowercase, email format)
+- password: String (required if no clerkId, minlength: 8)
+- avatar: String (default: '')
+- bio: String (maxlength: 500, default: '')
+- joinDate: Date (default: Date.now)
+- role: String (enum: user, moderator, admin; default: user)
+- isActive: Boolean (default: true)
+- name: String (maxlength: 100, default: '')
+- location: String (maxlength: 100, default: '')
+- website: String (maxlength: 200, default: '')
+- postCount: Number (default: 0)
+- threadCount: Number (default: 0)
+- reputation: Number (default: 0)
+- badges: Array of { id, name, count, variant }
+- timestamps: true
+
+## Post
+- thread: ObjectId (ref: Thread, required)
+- author: ObjectId (ref: User, required)
+- content: String (required, maxlength: 5000)
+- isEdited: Boolean (default: false)
+- isDeleted: Boolean (default: false)
+- createdAt: Date (default: Date.now)
+- updatedAt: Date (default: Date.now)
+- reportCount: Number (default: 0)
+- reports: [ObjectId] (ref: Report)
+- timestamps: true
+
+## Comment
+- post: ObjectId (ref: Post, required)
+- user: ObjectId (ref: User, required)
+- content: String (required, maxlength: 5000)
+- is_deleted: Boolean (default: false)
+- timestamps: true
+
+## Category
+- name: String (required, trim, maxlength: 50)
+- description: String (required, trim, maxlength: 200)
+- slug: String (required, unique, trim, lowercase)
+- icon: String (required, enum)
+- order: Number (required, default: 0)
+- isActive: Boolean (default: true)
+- threads: [ObjectId] (ref: Thread)
+- threadCount: Virtual (count of threads)
+- timestamps: true
+
+## Tag
+- name: String (required, unique, trim, maxlength: 50)
+- timestamps: true
+
+## PostTag (Many-to-Many Post/Tag)
+- post: ObjectId (ref: Post, required)
+- tag: ObjectId (ref: Tag, required)
+- unique index on (post, tag)
+- timestamps: true
+
+## Like
+- user: ObjectId (ref: User, required)
+- post: ObjectId (ref: Post, nullable)
+- comment: ObjectId (ref: Comment, nullable)
+- timestamps: createdAt only
+
+## Notification
+- user: ObjectId (ref: User, required)
+- type: String (enum: Comment, Like, Mention; required)
+- message: String (required)
+- is_read: Boolean (default: false)
+- timestamps: createdAt only
+
+## Moderation
+- moderator: ObjectId (ref: User, required)
+- action: String (enum: Ban, Unban, Delete Post, Edit Post; required)
+- target_user: ObjectId (ref: User, nullable)
+- target_post: ObjectId (ref: Post, nullable)
+- reason: String (default: '')
+- timestamps: createdAt only
+
+---
+
+### Notes
+- All models use Mongoose's ObjectId for references.
+- Timestamps are enabled for all models (createdAt, updatedAt where applicable).
+- Some models use virtuals (e.g., Category.threadCount).
+- Field names and types reflect the actual backend implementation.
+
+For further details, see the `/models/*.js` files in the repository.
