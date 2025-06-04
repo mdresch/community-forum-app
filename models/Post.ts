@@ -22,12 +22,12 @@ const PostSchema: Schema = new Schema(
     author: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
-      required: true,
+      required: [true, 'Author reference is required'],
     },
     thread: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Thread',
-      required: true,
+      required: [true, 'Thread reference is required'],
     },
     parentPost: {
       type: mongoose.Schema.Types.ObjectId,
@@ -42,10 +42,13 @@ const PostSchema: Schema = new Schema(
       type: Boolean,
       default: false,
     },
-    likes: [{
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'User',
-    }],
+    likes: {
+      type: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+      }],
+      default: []
+    },
   },
   {
     timestamps: true,
@@ -61,16 +64,22 @@ PostSchema.virtual('replies', {
   foreignField: 'parentPost',
 });
 
-// Update thread lastActivity timestamp when a new post is created
+// Update thread lastActivity timestamp when a post is created or content is modified
 PostSchema.pre('save', async function (next) {
-  if (this.isNew) {
+  if (this.isNew || this.isModified('content')) {
     try {
-      await mongoose.model('Thread').findByIdAndUpdate(
-        this.thread,
-        { lastActivity: Date.now() }
+      await mongoose.model('Thread').updateOne(
+        { _id: this.thread },
+        { $set: { lastActivity: Date.now() } }
       );
       next();
-    } catch (error: any) {
+    } catch (error: unknown) {
+      console.error('Error in Post pre-save hook:', {
+        error: error instanceof Error ? error.message : String(error),
+        operation: this.isNew ? 'new_post' : 'content_modification',
+        threadId: this.thread,
+        stack: error instanceof Error ? error.stack : undefined
+      });
       next(error);
     }
   } else {
